@@ -50,7 +50,7 @@
     <div id="info">
       <strong>HomeXR</strong>
       Four interactive VR buttons are visible in the scene: <em>sin</em>, <em>gauss</em>, <em>limit</em>, and <em>poli</em>.
-      Use the Meta Quest VR headset via the blue WebXR button, or click on a button with a pointer to see the press animation.
+      Each connected VR controller shows its own pointer and can trigger the press animation.
     </div>
     <script type="module">
       import * as THREE from './vendor/three/build/three.module.js';
@@ -101,18 +101,8 @@
       guideRing.position.set(0, 0.01, -1.2);
       scene.add(guideRing);
 
-      const controller = renderer.xr.getController(0);
-      controller.addEventListener('selectstart', onSelectStart);
-      controller.addEventListener('selectend', onSelectEnd);
-      scene.add(controller);
-
-      const controllerLine = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
-        new THREE.LineBasicMaterial({ color: 0x88c8ff })
-      );
-      controllerLine.name = 'ray';
-      controllerLine.scale.z = 5;
-      controller.add(controllerLine);
+      const controllers = [createController(0), createController(1)];
+      controllers.forEach((controller) => scene.add(controller));
 
       const raycaster = new THREE.Raycaster();
       const tempMatrix = new THREE.Matrix4();
@@ -168,6 +158,29 @@
         );
       }
 
+      function createController(index) {
+        const controller = renderer.xr.getController(index);
+        controller.addEventListener('selectstart', onSelectStart);
+        controller.addEventListener('selectend', onSelectEnd);
+
+        const controllerLine = new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
+          new THREE.LineBasicMaterial({ color: 0x88c8ff })
+        );
+        controllerLine.name = 'ray';
+        controllerLine.scale.z = 5;
+        controller.add(controllerLine);
+
+        const controllerPointer = new THREE.Mesh(
+          new THREE.SphereGeometry(0.012, 16, 12),
+          new THREE.MeshBasicMaterial({ color: 0x88c8ff, opacity: 0.95, transparent: true })
+        );
+        controllerPointer.position.set(0, 0, -1);
+        controller.add(controllerPointer);
+
+        return controller;
+      }
+
       function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -184,7 +197,8 @@
         }
       }
 
-      function onSelectStart() {
+      function onSelectStart(event) {
+        const controller = event.target;
         const intersections = getControllerIntersections(controller);
         if (intersections.length) {
           selectedButton = getButtonGroup(intersections[0].object);
