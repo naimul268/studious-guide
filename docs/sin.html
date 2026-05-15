@@ -101,7 +101,7 @@
         <input type="range" id="xSlider" min="-31.4" max="31.4" step="0.1" value="0" />
         <span id="xValue">0.0</span>
       </div>
-      <p style="margin-top: 0.6rem; margin-bottom: 0;">A 3D sine plot is shown with x, y, and z axes. Grab a connected VR controller and use the select trigger to rotate the axis group like a cube.</p>
+      <p style="margin-top: 0.6rem; margin-bottom: 0;">A 3D sine plot is shown with x, y, and z axes. Grab a connected VR controller and use the select trigger to rotate and translate the axis group.</p>
     </div>
     <script type="module">
       import * as THREE from './vendor/three/build/three.module.js';
@@ -161,6 +161,8 @@
       let selectedMode = null;
       const controllerStartQuat = new THREE.Quaternion();
       const axesStartQuat = new THREE.Quaternion();
+      const controllerStartPos = new THREE.Vector3();
+      const axesStartPos = new THREE.Vector3();
       let sliderStartX = 0;
       let sliderStartOffset = 0;
 
@@ -336,10 +338,12 @@
             sliderStartX = intersections[0].point.x;
             sliderStartOffset = xOffset;
           } else {
-            selectedMode = 'rotate';
+            selectedMode = 'transform';
             selectedController = controller;
             controllerStartQuat.copy(controller.quaternion);
             axesStartQuat.copy(axesGroup.quaternion);
+            controllerStartPos.setFromMatrixPosition(controller.matrixWorld);
+            axesStartPos.copy(axesGroup.position);
           }
         }
       }
@@ -363,10 +367,14 @@
       }
 
       function render() {
-        if (selectedController && selectedMode === 'rotate') {
+        if (selectedController && selectedMode === 'transform') {
           const currentQuat = selectedController.quaternion.clone();
           const deltaQuat = currentQuat.multiply(controllerStartQuat.clone().invert());
           axesGroup.quaternion.copy(axesStartQuat).premultiply(deltaQuat);
+
+          const currentPos = new THREE.Vector3().setFromMatrixPosition(selectedController.matrixWorld);
+          const deltaPos = currentPos.clone().sub(controllerStartPos);
+          axesGroup.position.copy(axesStartPos).add(deltaPos);
         } else if (selectedController && selectedMode === 'slider') {
           tempMatrix.identity().extractRotation(selectedController.matrixWorld);
           raycaster.ray.origin.setFromMatrixPosition(selectedController.matrixWorld);
