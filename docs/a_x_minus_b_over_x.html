@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>a*x - b/x Plot XR</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #050a18;
+        color: #f4f8ff;
+        font-family: system-ui, sans-serif;
+      }
+
+      #info {
+        position: absolute;
+        left: 1rem;
+        right: 1rem;
+        top: 1rem;
+        z-index: 10;
+        padding: 0.9rem 1rem;
+        background: rgba(2, 8, 25, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0.85rem;
+        line-height: 1.55;
+        font-size: 0.95rem;
+      }
+
+      #info strong {
+        display: block;
+        margin-bottom: 0.4rem;
+        font-size: 1.05rem;
+      }
+
+      .sliderRow {
+        margin-top: 0.65rem;
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+      }
+
+      .sliderRow span {
+        min-width: 60px;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      input[type='range'] {
+        flex: 1;
+        height: 6px;
+        border-radius: 3px;
+        background: #1a3a5c;
+        outline: none;
+        -webkit-appearance: none;
+      }
+
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #88c8ff;
+        cursor: pointer;
+        box-shadow: 0 0 8px rgba(136, 200, 255, 0.6);
+      }
+
+      input[type='range']::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #88c8ff;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 0 8px rgba(136, 200, 255, 0.6);
+      }
+
+      .valueLabel {
+        min-width: 50px;
+        text-align: right;
+        font-family: monospace;
+        font-size: 0.9rem;
+        color: #ffd568;
+      }
+
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="info">
+      <strong>a*x - b/x Plot XR</strong>
+      <div class="sliderRow">
+        <span>a1:</span>
+        <input type="range" id="a1Slider" min="-5" max="5" step="0.1" value="1" />
+        <span id="a1Value" class="valueLabel">1.0</span>
+      </div>
+      <div class="sliderRow">
+        <span>a2:</span>
+        <input type="range" id="a2Slider" min="-5" max="5" step="0.1" value="1" />
+        <span id="a2Value" class="valueLabel">1.0</span>
+      </div>
+      <div class="sliderRow">
+        <span>b:</span>
+        <input type="range" id="bSlider" min="0.1" max="10" step="0.1" value="1" />
+        <span id="bValue" class="valueLabel">1.0</span>
+      </div>
+      <p style="margin-top: 0.7rem; margin-bottom: 0;">A 3D plot of f(x) = a*x - b/x is shown with x, y, and z axes. Two sliders adjust a through a1 + a2, and one slider adjusts b. Grab a connected VR controller and use the select trigger to rotate and translate the axis group.</p>
+    </div>
+    <script type="module">
+      import * as THREE from './vendor/three/build/three.module.js';
+      import { VRButton } from './vendor/three/examples/jsm/webxr/VRButton.js';
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.xr.enabled = true;
+      renderer.xr.setReferenceSpaceType('local');
+      document.body.appendChild(renderer.domElement);
+      document.body.appendChild(VRButton.createButton(renderer));
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x050a18);
+
+      const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.05, 100);
+      camera.position.set(0, 1.8, 4);
+
+      const ambientLight = new THREE.HemisphereLight(0xffffff, 0x202035, 0.9);
+      scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(5, 7, 5);
+      scene.add(directionalLight);
+
+      const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(10, 10),
+        new THREE.MeshStandardMaterial({ color: 0x081025, roughness: 0.95, metalness: 0.05 })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = 0;
+      scene.add(floor);
+
+      const grid = new THREE.GridHelper(8, 16, 0x204b8a, 0x10203a);
+      grid.position.y = 0.001;
+      scene.add(grid);
+
+      const axesGroup = new THREE.Group();
+      axesGroup.position.set(0, 1.25, -0.5);
+      scene.add(axesGroup);
+
+      let fxCurve = null;
+      let a1 = 1;
+      let a2 = 1;
+      let b = 1;
+
+      createAxes();
+      fxCurve = createFxCurve(a1 + a2, b);
+
+      const controllers = [createController(0), createController(1)];
+      controllers.forEach((controller) => scene.add(controller));
+
+      const raycaster = new THREE.Raycaster();
+      const tempMatrix = new THREE.Matrix4();
+      let selectedController = null;
+      let selectedMode = null;
+      const controllerStartQuat = new THREE.Quaternion();
+      const axesStartQuat = new THREE.Quaternion();
+      const controllerStartPos = new THREE.Vector3();
+      const axesStartPos = new THREE.Vector3();
+
+      const a1Slider = document.getElementById('a1Slider');
+      const a2Slider = document.getElementById('a2Slider');
+      const bSlider = document.getElementById('bSlider');
+      const a1Value = document.getElementById('a1Value');
+      const a2Value = document.getElementById('a2Value');
+      const bValue = document.getElementById('bValue');
+
+      a1Slider.addEventListener('input', onParameterChange);
+      a2Slider.addEventListener('input', onParameterChange);
+      bSlider.addEventListener('input', onParameterChange);
+
+      window.addEventListener('resize', onWindowResize);
+      renderer.setAnimationLoop(render);
+
+      function onParameterChange() {
+        a1 = parseFloat(a1Slider.value);
+        a2 = parseFloat(a2Slider.value);
+        b = parseFloat(bSlider.value);
+        a1Value.textContent = a1.toFixed(1);
+        a2Value.textContent = a2.toFixed(1);
+        bValue.textContent = b.toFixed(1);
+        updateFxCurve();
+      }
+
+      function updateFxCurve() {
+        if (fxCurve) {
+          axesGroup.remove(fxCurve);
+        }
+        fxCurve = createFxCurve(a1 + a2, b);
+      }
+
+      function createAxes() {
+        const material = new THREE.MeshStandardMaterial({ color: 0x88c8ff, roughness: 0.3, metalness: 0.2 });
+        const length = 3.0;
+        const thickness = 0.03;
+
+        const xAxis = new THREE.Mesh(new THREE.CylinderGeometry(thickness, thickness, length, 12), material);
+        xAxis.rotation.z = -Math.PI / 2;
+        xAxis.position.x = length / 2;
+        axesGroup.add(xAxis);
+
+        const yAxis = new THREE.Mesh(new THREE.CylinderGeometry(thickness, thickness, length, 12), material);
+        yAxis.position.y = length / 2;
+        axesGroup.add(yAxis);
+
+        const zAxis = new THREE.Mesh(new THREE.CylinderGeometry(thickness, thickness, length, 12), material);
+        zAxis.rotation.x = Math.PI / 2;
+        zAxis.position.z = length / 2;
+        axesGroup.add(zAxis);
+
+        const arrow = new THREE.ConeGeometry(0.08, 0.26, 16);
+        const xArrow = new THREE.Mesh(arrow, material);
+        xArrow.rotation.z = -Math.PI / 2;
+        xArrow.position.set(length, 0, 0);
+        axesGroup.add(xArrow);
+
+        const yArrow = new THREE.Mesh(arrow, material);
+        yArrow.position.set(0, length, 0);
+        axesGroup.add(yArrow);
+
+        const zArrow = new THREE.Mesh(arrow, material);
+        zArrow.rotation.x = Math.PI / 2;
+        zArrow.position.set(0, 0, length);
+        axesGroup.add(zArrow);
+
+        axesGroup.add(createLabel('X', length + 0.2, 0, 0));
+        axesGroup.add(createLabel('Y', 0, length + 0.2, 0));
+        axesGroup.add(createLabel('Z', 0, 0, length + 0.2));
+      }
+
+      function createLabel(text, x, y, z) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(5, 9, 24, 0.0)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = 'bold 70px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ccf6ff';
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.encoding = THREE.sRGBEncoding;
+
+        const label = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.4, 0.2),
+          new THREE.MeshBasicMaterial({ map: texture, transparent: true })
+        );
+        label.position.set(x, y, z);
+        label.lookAt(camera.position);
+        return label;
+      }
+
+      function createFxCurve(a, b) {
+        const points = [];
+        const start = -Math.PI * 4;
+        const end = Math.PI * 4;
+        const step = 0.08;
+        for (let x = start; x <= end; x += step) {
+          const y = Math.abs(x) < 1e-4 ? 0 : a * x - b / x;
+          points.push(new THREE.Vector3(x * 0.28, y * 0.7, 0));
+        }
+
+        const curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        const curveMaterial = new THREE.LineBasicMaterial({ color: 0xffd568, linewidth: 2 });
+        const curve = new THREE.Line(curveGeometry, curveMaterial);
+        curve.position.y = 0.02;
+        axesGroup.add(curve);
+        return curve;
+      }
+
+      function createController(index) {
+        const controller = renderer.xr.getController(index);
+        controller.addEventListener('selectstart', onSelectStart);
+        controller.addEventListener('selectend', onSelectEnd);
+
+        const ray = new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
+          new THREE.LineBasicMaterial({ color: 0x88c8ff })
+        );
+        ray.name = 'ray';
+        ray.scale.z = 6;
+        controller.add(ray);
+
+        const pointer = new THREE.Mesh(
+          new THREE.SphereGeometry(0.015, 16, 12),
+          new THREE.MeshBasicMaterial({ color: 0x88c8ff, opacity: 0.9, transparent: true })
+        );
+        pointer.position.set(0, 0, -1);
+        controller.add(pointer);
+
+        return controller;
+      }
+
+      function onSelectStart(event) {
+        const controller = event.target;
+        const intersections = getControllerIntersections(controller);
+        if (intersections.length) {
+          selectedMode = 'transform';
+          selectedController = controller;
+          controllerStartQuat.copy(controller.quaternion);
+          axesStartQuat.copy(axesGroup.quaternion);
+          controllerStartPos.setFromMatrixPosition(controller.matrixWorld);
+          axesStartPos.copy(axesGroup.position);
+        }
+      }
+
+      function onSelectEnd() {
+        selectedController = null;
+        selectedMode = null;
+      }
+
+      function getControllerIntersections(controller) {
+        tempMatrix.identity().extractRotation(controller.matrixWorld);
+        raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+        raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+        return raycaster.intersectObjects(axesGroup.children, true);
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function render() {
+        if (selectedController && selectedMode === 'transform') {
+          const currentQuat = selectedController.quaternion.clone();
+          const deltaQuat = currentQuat.multiply(controllerStartQuat.clone().invert());
+          axesGroup.quaternion.copy(axesStartQuat).premultiply(deltaQuat);
+
+          const currentPos = new THREE.Vector3().setFromMatrixPosition(selectedController.matrixWorld);
+          const deltaPos = currentPos.clone().sub(controllerStartPos);
+          axesGroup.position.copy(axesStartPos).add(deltaPos);
+        }
+        renderer.render(scene, camera);
+      }
+    </script>
+  </body>
+</html>
