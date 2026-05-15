@@ -1,0 +1,10 @@
+{
+  "name": "studious-guide",
+  "private": true,
+  "devDependencies": {
+    "three": "^0.161.0"
+  },
+  "scripts": {
+    "vendor": "rm -rf docs/vendor/three && mkdir -p docs/vendor/three/build docs/vendor/three/examples/jsm && cp node_modules/three/build/three.module.js docs/vendor/three/build/three.module.js && cp -r node_modules/three/examples/jsm docs/vendor/three/examples/jsm"
+  }
+}

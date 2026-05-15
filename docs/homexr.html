@@ -53,8 +53,8 @@
       Use the Meta Quest VR headset via the blue WebXR button, or click on a button with a pointer to see the press animation.
     </div>
     <script type="module">
-      import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
-      import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/webxr/VRButton.js';
+      import * as THREE from './vendor/three/build/three.module.js';
+      import { VRButton } from './vendor/three/examples/jsm/webxr/VRButton.js';
 
       const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(window.devicePixelRatio);
