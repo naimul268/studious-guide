@@ -97,21 +97,16 @@
     <div id="info">
       <strong>a*x - b/x Plot XR</strong>
       <div class="sliderRow">
-        <span>a1:</span>
-        <input type="range" id="a1Slider" min="-5" max="5" step="0.1" value="1" />
-        <span id="a1Value" class="valueLabel">1.0</span>
-      </div>
-      <div class="sliderRow">
-        <span>a2:</span>
-        <input type="range" id="a2Slider" min="-5" max="5" step="0.1" value="1" />
-        <span id="a2Value" class="valueLabel">1.0</span>
+        <span>a:</span>
+        <input type="range" id="aSlider" min="-5" max="5" step="0.1" value="1" />
+        <span id="aValue" class="valueLabel">1.0</span>
       </div>
       <div class="sliderRow">
         <span>b:</span>
         <input type="range" id="bSlider" min="0.1" max="10" step="0.1" value="1" />
         <span id="bValue" class="valueLabel">1.0</span>
       </div>
-      <p style="margin-top: 0.7rem; margin-bottom: 0;">A 3D plot of f(x) = a*x - b/x is shown with x, y, and z axes. Two sliders adjust a through a1 + a2, and one slider adjusts b. Grab a connected VR controller and use the select trigger to rotate and translate the axis group.</p>
+      <p style="margin-top: 0.7rem; margin-bottom: 0;">A 3D plot of f(x) = a*x - b/x is shown with x, y, and z axes. One slider adjust a, and one slider adjusts b. Grab a connected VR controller and use the select trigger to rotate and translate the axis group.</p>
     </div>
     <script type="module">
       import * as THREE from './vendor/three/build/three.module.js';
@@ -154,12 +149,11 @@
       scene.add(axesGroup);
 
       let fxCurve = null;
-      let a1 = 1;
-      let a2 = 1;
+      let a = 1;
       let b = 1;
 
       createAxes();
-      fxCurve = createFxCurve(a1 + a2, b);
+      fxCurve = createFxCurve(a, b);
 
       const controllers = [createController(0), createController(1)];
       controllers.forEach((controller) => scene.add(controller));
@@ -173,26 +167,24 @@
       const controllerStartPos = new THREE.Vector3();
       const axesStartPos = new THREE.Vector3();
 
-      const a1Slider = document.getElementById('a1Slider');
-      const a2Slider = document.getElementById('a2Slider');
+      const aSlider = document.getElementById('aSlider');
+      
       const bSlider = document.getElementById('bSlider');
-      const a1Value = document.getElementById('a1Value');
-      const a2Value = document.getElementById('a2Value');
+      const aValue = document.getElementById('aValue');
       const bValue = document.getElementById('bValue');
 
-      a1Slider.addEventListener('input', onParameterChange);
-      a2Slider.addEventListener('input', onParameterChange);
+      aSlider.addEventListener('input', onParameterChange);
+      
       bSlider.addEventListener('input', onParameterChange);
 
       window.addEventListener('resize', onWindowResize);
       renderer.setAnimationLoop(render);
 
       function onParameterChange() {
-        a1 = parseFloat(a1Slider.value);
-        a2 = parseFloat(a2Slider.value);
+        a = parseFloat(aSlider.value);
+        
         b = parseFloat(bSlider.value);
-        a1Value.textContent = a1.toFixed(1);
-        a2Value.textContent = a2.toFixed(1);
+        aValue.textContent = a.toFixed(1);
         bValue.textContent = b.toFixed(1);
         updateFxCurve();
       }
@@ -201,7 +193,7 @@
         if (fxCurve) {
           axesGroup.remove(fxCurve);
         }
-        fxCurve = createFxCurve(a1 + a2, b);
+        fxCurve = createFxCurve(a, b);
       }
 
       function createAxes() {
