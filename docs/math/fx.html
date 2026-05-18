@@ -1,405 +1,978 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Custom Plot XR</title>
-    <style>
-      body,
-      html {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: #050a18;
-        color: #f4f8ff;
-        font-family: system-ui, sans-serif;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Galli, Santin — f(x)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,wght@0,200;0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #07090f;
+      --surface:   #0d1117;
+      --border:    rgba(255,255,255,0.07);
+      --border-hi: rgba(255,255,255,0.18);
+      --text:      #e8eaf0;
+      --muted:     #5a5f73;
+      --accent:    #5df5c2;
+      --accent2:   #f5b45d;
+      --accent3:   #8b8fff;
+      --curve:     #5df5c2;
+      --danger:    #ff6b6b;
+      --grid:      rgba(255,255,255,0.04);
+      --panel-w:   340px;
+    }
 
-      #info {
-        position: absolute;
-        left: 1rem;
-        right: 1rem;
-        top: 1rem;
-        z-index: 10;
-        padding: 0.9rem 1rem;
-        background: rgba(2, 8, 25, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 0.85rem;
-        line-height: 1.55;
-        font-size: 0.95rem;
-      }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      #info strong {
-        display: block;
-        margin-bottom: 0.4rem;
-        font-size: 1.05rem;
-      }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+    }
 
-      #sliderContainer {
-        margin-top: 0.8rem;
-        display: flex;
-        gap: 0.6rem;
-        align-items: center;
-      }
+    /* ── LAYOUT ────────────────────────────── */
+    #app { display: flex; width: 100%; height: 100%; position: relative; }
 
-      #sliderLabel {
-        min-width: 50px;
-        font-size: 0.9rem;
-        font-weight: 500;
-      }
+    /* ── CANVAS AREA ─────────────────────────*/
+    #canvasWrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
 
-      input[type='range'] {
-        flex: 1;
-        height: 6px;
-        border-radius: 3px;
-        background: #1a3a5c;
-        outline: none;
-        -webkit-appearance: none;
-      }
+    canvas#plot {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
 
-      input[type='range']::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #88c8ff;
-        cursor: pointer;
-        box-shadow: 0 0 8px rgba(136, 200, 255, 0.6);
-      }
+    /* Watermark */
+    #watermark {
+      position: absolute;
+      bottom: 1.4rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 300;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      text-transform: uppercase;
+      pointer-events: none;
+      white-space: nowrap;
+    }
 
-      input[type='range']::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #88c8ff;
-        cursor: pointer;
-        border: none;
-        box-shadow: 0 0 8px rgba(136, 200, 255, 0.6);
-      }
+    /* Coord tooltip */
+    #tooltip {
+      position: absolute;
+      pointer-events: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--accent);
+      background: rgba(7,9,15,0.85);
+      border: 1px solid var(--border-hi);
+      padding: 0.3em 0.6em;
+      border-radius: 0.35rem;
+      opacity: 0;
+      transition: opacity 0.12s;
+      white-space: nowrap;
+    }
 
-      #xValue {
-        min-width: 60px;
-        text-align: right;
-        font-family: monospace;
-        font-size: 0.9rem;
-        color: #ffd568;
-      }
+    /* ── PANEL ───────────────────────────────*/
+    #panel {
+      width: var(--panel-w);
+      min-width: var(--panel-w);
+      height: 100%;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-      canvas {
-        display: block;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="info">
-      <strong>Custom Plot XR</strong>
-      <div id="sliderContainer">
-        <span id="sliderLabel">x offset:</span>
-        <input type="range" id="xSlider" min="-31.4" max="31.4" step="0.1" value="0" />
-        <span id="xValue">0.0</span>
-      </div>
-      <p style="margin-top: 0.6rem; margin-bottom: 0;">A 3D plot of f(x) = 2*x - 1/x is shown with x, y, and z axes. Grab a connected VR controller and use the select trigger to rotate and translate the axis group.</p>
+    .panel-header {
+      padding: 1.6rem 1.5rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .brand {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+    }
+
+    .title {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 200;
+      font-size: 1.55rem;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .title em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    /* scrollable body */
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.4rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-hi) transparent;
+    }
+
+    /* ── SECTIONS ────────────────────────────*/
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.7rem;
+    }
+
+    /* ── FUNCTION INPUT ──────────────────────*/
+    .fx-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--bg);
+      border: 1px solid var(--border-hi);
+      border-radius: 0.6rem;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .fx-wrap:focus-within { border-color: var(--accent); }
+
+    .fx-prefix {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.88rem;
+      color: var(--accent);
+      padding: 0.7rem 0.5rem 0.7rem 0.85rem;
+      white-space: nowrap;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    #fxInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.88rem;
+      color: var(--text);
+      padding: 0.7rem 0.85rem 0.7rem 0.3rem;
+      width: 100%;
+    }
+
+    #fxInput::placeholder { color: var(--muted); }
+
+    .fx-status {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      margin-top: 0.45rem;
+      padding-left: 0.2rem;
+      min-height: 1em;
+      transition: color 0.2s;
+    }
+    .fx-status.ok  { color: var(--accent); }
+    .fx-status.err { color: var(--danger); }
+    .fx-status.empty { color: var(--muted); }
+
+    /* ── SLIDER ──────────────────────────────*/
+    .slider-block { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .slider-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 0.15em 0.55em;
+      border-radius: 0.25rem;
+    }
+    .slider-name.A { color: var(--accent2); background: rgba(245,180,93,0.1); }
+    .slider-name.B { color: var(--accent3); background: rgba(139,143,255,0.1); }
+
+    .slider-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--text);
+      min-width: 52px;
+      text-align: right;
+    }
+
+    .slider-range {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .range-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      min-width: 28px;
+      text-align: center;
+    }
+
+    input[type=range] {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range].A {
+      background: linear-gradient(to right, var(--accent2) var(--pct, 50%), rgba(255,255,255,0.1) var(--pct, 50%));
+    }
+    input[type=range].B {
+      background: linear-gradient(to right, var(--accent3) var(--pct, 50%), rgba(255,255,255,0.1) var(--pct, 50%));
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    input[type=range].A::-webkit-slider-thumb {
+      background: var(--accent2);
+      box-shadow: 0 0 8px rgba(245,180,93,0.5);
+    }
+    input[type=range].B::-webkit-slider-thumb {
+      background: var(--accent3);
+      box-shadow: 0 0 8px rgba(139,143,255,0.5);
+    }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    input[type=range]::-moz-range-thumb {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+    }
+    input[type=range].A::-moz-range-thumb { background: var(--accent2); }
+    input[type=range].B::-moz-range-thumb { background: var(--accent3); }
+
+    /* slider min/max editable */
+    .range-input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      outline: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      width: 36px;
+      text-align: center;
+      padding: 0.1em;
+      transition: border-color 0.15s;
+    }
+    .range-input:focus { border-color: var(--border-hi); color: var(--text); }
+
+    /* ── VIEW CONTROLS ───────────────────────*/
+    .view-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .ctrl-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .ctrl-input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0.4rem;
+      outline: none;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      padding: 0.45em 0.6em;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    .ctrl-input:focus { border-color: var(--border-hi); }
+
+    /* ── BUTTONS ─────────────────────────────*/
+    .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    .btn {
+      flex: 1;
+      min-width: 80px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      padding: 0.55em 0.8em;
+      border-radius: 0.45rem;
+      border: 1px solid var(--border-hi);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .btn:hover { border-color: var(--border-hi); color: var(--text); background: rgba(255,255,255,0.04); }
+    .btn.primary {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .btn.primary:hover {
+      background: rgba(93,245,194,0.08);
+    }
+
+    /* ── PRESETS ─────────────────────────────*/
+    .presets {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .preset-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0.45rem;
+      cursor: pointer;
+      padding: 0.6em 0.85em;
+      text-align: left;
+      transition: all 0.12s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .preset-btn:hover { border-color: var(--border-hi); }
+
+    .preset-fn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--accent);
+    }
+
+    .preset-desc {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    /* ── DIVIDER ─────────────────────────────*/
+    hr.div {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+
+    /* ── SCROLLBAR ───────────────────────────*/
+    .panel-body::-webkit-scrollbar { width: 4px; }
+    .panel-body::-webkit-scrollbar-track { background: transparent; }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- ── CANVAS ── -->
+  <div id="canvasWrap">
+    <canvas id="plot"></canvas>
+    <div id="tooltip"></div>
+    <div id="watermark">Galli, Santin &nbsp;·&nbsp; f(x) plotter</div>
+  </div>
+
+  <!-- ── PANEL ── -->
+  <div id="panel">
+    <div class="panel-header">
+      <div class="brand">Galli, Santin</div>
+      <div class="title">f(x) &nbsp;<em>plotter</em></div>
     </div>
-    <script type="module">
-      import * as THREE from '../vendor/three/build/three.module.js';
-      import { VRButton } from '../vendor/three/examples/jsm/webxr/VRButton.js';
 
-      const renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.xr.enabled = true;
-      renderer.xr.setReferenceSpaceType('local');
-      document.body.appendChild(renderer.domElement);
-      document.body.appendChild(VRButton.createButton(renderer));
+    <div class="panel-body">
 
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x050a18);
+      <!-- FUNCTION INPUT -->
+      <div>
+        <div class="section-label">Function</div>
+        <div class="fx-wrap">
+          <span class="fx-prefix">f(x) =</span>
+          <input type="text" id="fxInput" placeholder="2*x - 1/x" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="fx-status empty" id="fxStatus">usa A e B come parametri dinamici</div>
+      </div>
 
-      const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.05, 100);
-      camera.position.set(0, 1.8, 4);
+      <!-- PARAM A -->
+      <div class="slider-block">
+        <div class="section-label">Parametro A</div>
+        <div class="slider-row">
+          <span class="slider-name A">A</span>
+          <span class="slider-val" id="valA">1.00</span>
+        </div>
+        <div class="slider-range">
+          <input type="text" class="range-input" id="minA" value="-10" />
+          <input type="range" class="A" id="sliderA" min="-10" max="10" step="0.01" value="1" style="--pct:55%" />
+          <input type="text" class="range-input" id="maxA" value="10" />
+        </div>
+      </div>
 
-      const ambientLight = new THREE.HemisphereLight(0xffffff, 0x202035, 0.9);
-      scene.add(ambientLight);
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      directionalLight.position.set(5, 7, 5);
-      scene.add(directionalLight);
+      <!-- PARAM B -->
+      <div class="slider-block">
+        <div class="section-label">Parametro B</div>
+        <div class="slider-row">
+          <span class="slider-name B">B</span>
+          <span class="slider-val" id="valB">1.00</span>
+        </div>
+        <div class="slider-range">
+          <input type="text" class="range-input" id="minB" value="-10" />
+          <input type="range" class="B" id="sliderB" min="-10" max="10" step="0.01" value="1" style="--pct:55%" />
+          <input type="text" class="range-input" id="maxB" value="10" />
+        </div>
+      </div>
 
-      const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(10, 10),
-        new THREE.MeshStandardMaterial({ color: 0x081025, roughness: 0.95, metalness: 0.05 })
-      );
-      floor.rotation.x = -Math.PI / 2;
-      floor.position.y = 0;
-      scene.add(floor);
+      <hr class="div">
 
-      const grid = new THREE.GridHelper(8, 16, 0x204b8a, 0x10203a);
-      grid.position.y = 0.001;
-      scene.add(grid);
+      <!-- VIEW CONTROLS -->
+      <div>
+        <div class="section-label">Vista</div>
+        <div class="view-controls">
+          <div>
+            <div class="ctrl-label">x min</div>
+            <input type="number" class="ctrl-input" id="xMin" value="-10" step="1">
+          </div>
+          <div>
+            <div class="ctrl-label">x max</div>
+            <input type="number" class="ctrl-input" id="xMax" value="10" step="1">
+          </div>
+          <div>
+            <div class="ctrl-label">y min</div>
+            <input type="number" class="ctrl-input" id="yMin" value="-10" step="1">
+          </div>
+          <div>
+            <div class="ctrl-label">y max</div>
+            <input type="number" class="ctrl-input" id="yMax" value="10" step="1">
+          </div>
+        </div>
+      </div>
 
-      const axesGroup = new THREE.Group();
-      axesGroup.position.set(0, 1.25, -0.5);
-      scene.add(axesGroup);
+      <div class="btn-row">
+        <button class="btn primary" id="btnReset">reset vista</button>
+        <button class="btn" id="btnFit">auto-fit</button>
+        <button class="btn" id="btnGrid">griglia</button>
+      </div>
 
-      let fxCurve = null;
-      let xOffset = 0;
+      <hr class="div">
 
-      createAxes();
-      fxCurve = createFxCurve(xOffset);
+      <!-- PRESETS -->
+      <div>
+        <div class="section-label">Preset</div>
+        <div class="presets" id="presetList"></div>
+      </div>
 
-      const sliderGroup = createVRSlider();
-      scene.add(sliderGroup);
+    </div>
+  </div>
+</div>
 
-      const controllers = [createController(0), createController(1)];
-      controllers.forEach((controller) => scene.add(controller));
+<script>
+// ──────────────────────────────────────────────────────────────
+//  State
+// ──────────────────────────────────────────────────────────────
+const state = {
+  fn: '2*x - 1/x',
+  A: 1, B: 1,
+  xMin: -10, xMax: 10,
+  yMin: -10, yMax: 10,
+  showGrid: true,
+  compiledFn: null,
+  pan: { active: false, startX: 0, startY: 0, origXMin: 0, origXMax: 0, origYMin: 0, origYMax: 0 },
+};
 
-      const raycaster = new THREE.Raycaster();
-      const tempMatrix = new THREE.Matrix4();
-      let selectedController = null;
-      let selectedMode = null;
-      const controllerStartQuat = new THREE.Quaternion();
-      const axesStartQuat = new THREE.Quaternion();
-      const controllerStartPos = new THREE.Vector3();
-      const axesStartPos = new THREE.Vector3();
-      let sliderStartX = 0;
-      let sliderStartOffset = 0;
+const PRESETS = [
+  { fn: '2*x - 1/x',         label: 'originale' },
+  { fn: 'A*sin(B*x)',         label: 'sinusoide' },
+  { fn: 'A*x*x + B*x',       label: 'parabola' },
+  { fn: 'exp(A*x)*cos(B*x)',  label: 'spirale' },
+  { fn: 'A/x + B*x',         label: 'iperbole+retta' },
+  { fn: 'A*tan(x/B)',         label: 'tangente' },
+  { fn: 'sqrt(abs(A*x))*B',   label: 'radice' },
+  { fn: 'A*log(abs(x)+1)+B',  label: 'logaritmo' },
+];
 
-      const xSlider = document.getElementById('xSlider');
-      const xValue = document.getElementById('xValue');
-      xSlider.addEventListener('input', onSliderChange);
+// ──────────────────────────────────────────────────────────────
+//  DOM refs
+// ──────────────────────────────────────────────────────────────
+const canvas   = document.getElementById('plot');
+const ctx      = canvas.getContext('2d');
+const tooltip  = document.getElementById('tooltip');
+const fxInput  = document.getElementById('fxInput');
+const fxStatus = document.getElementById('fxStatus');
+const sliderA  = document.getElementById('sliderA');
+const sliderB  = document.getElementById('sliderB');
+const valA     = document.getElementById('valA');
+const valB     = document.getElementById('valB');
+const minAEl   = document.getElementById('minA');
+const maxAEl   = document.getElementById('maxA');
+const minBEl   = document.getElementById('minB');
+const maxBEl   = document.getElementById('maxB');
+const xMinEl   = document.getElementById('xMin');
+const xMaxEl   = document.getElementById('xMax');
+const yMinEl   = document.getElementById('yMin');
+const yMaxEl   = document.getElementById('yMax');
 
-      window.addEventListener('resize', onWindowResize);
-      renderer.setAnimationLoop(render);
+// ──────────────────────────────────────────────────────────────
+//  CSS variables helper
+// ──────────────────────────────────────────────────────────────
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
-      function onSliderChange(event) {
-        xOffset = parseFloat(event.target.value);
-        xValue.textContent = xOffset.toFixed(1);
-        updateFxCurve();
-        updateSliderThumb();
-      }
+// ──────────────────────────────────────────────────────────────
+//  Compile function safely
+// ──────────────────────────────────────────────────────────────
+function compileFn(expr) {
+  if (!expr.trim()) return null;
+  // inject Math methods
+  const safe = expr
+    .replace(/\bsin\b/g, 'Math.sin')
+    .replace(/\bcos\b/g, 'Math.cos')
+    .replace(/\btan\b/g, 'Math.tan')
+    .replace(/\babs\b/g, 'Math.abs')
+    .replace(/\bsqrt\b/g, 'Math.sqrt')
+    .replace(/\blog\b/g, 'Math.log')
+    .replace(/\blog2\b/g, 'Math.log2')
+    .replace(/\bexp\b/g, 'Math.exp')
+    .replace(/\bfloor\b/g, 'Math.floor')
+    .replace(/\bceil\b/g, 'Math.ceil')
+    .replace(/\bround\b/g, 'Math.round')
+    .replace(/\bPI\b/g, 'Math.PI')
+    .replace(/\bE\b/g, 'Math.E')
+    .replace(/\bpow\b/g, 'Math.pow')
+    .replace(/\bsign\b/g, 'Math.sign')
+    .replace(/\bmod\b/g, '%');
+  try {
+    // eslint-disable-next-line no-new-func
+    const f = new Function('x', 'A', 'B', `"use strict"; return (${safe});`);
+    f(0, 1, 1); // test
+    return f;
+  } catch {
+    return null;
+  }
+}
 
-      function updateFxCurve() {
-        if (fxCurve) {
-          axesGroup.remove(fxCurve);
-        }
-        fxCurve = createFxCurve(xOffset);
-      }
+function updateFn() {
+  const expr = fxInput.value || '2*x - 1/x';
+  state.compiledFn = compileFn(expr);
+  state.fn = expr;
+  if (!expr.trim()) {
+    fxStatus.className = 'fx-status empty';
+    fxStatus.textContent = 'usa A e B come parametri dinamici';
+  } else if (state.compiledFn) {
+    fxStatus.className = 'fx-status ok';
+    const usesA = /\bA\b/.test(expr);
+    const usesB = /\bB\b/.test(expr);
+    const parts = [];
+    if (usesA) parts.push('A');
+    if (usesB) parts.push('B');
+    fxStatus.textContent = parts.length ? `✓ usa parametr${parts.length>1?'i':'o'} ${parts.join(', ')}` : '✓ funzione valida';
+  } else {
+    fxStatus.className = 'fx-status err';
+    fxStatus.textContent = '✗ espressione non valida';
+  }
+  draw();
+}
 
-      function updateSliderThumb() {
-        const thumbMesh = sliderGroup.getObjectByName('sliderThumb');
-        if (thumbMesh) {
-          const minX = -3.14;
-          const maxX = 3.14;
-          const trackLength = maxX - minX;
-          const normalizedValue = (xOffset - (-31.4)) / (31.4 - (-31.4));
-          thumbMesh.position.x = minX + normalizedValue * trackLength;
-        }
-      }
+// ──────────────────────────────────────────────────────────────
+//  Coordinate mapping
+// ──────────────────────────────────────────────────────────────
+function toCanvasX(x) {
+  return (x - state.xMin) / (state.xMax - state.xMin) * canvas.width;
+}
+function toCanvasY(y) {
+  return canvas.height - (y - state.yMin) / (state.yMax - state.yMin) * canvas.height;
+}
+function toWorldX(px) {
+  return state.xMin + (px / canvas.width) * (state.xMax - state.xMin);
+}
+function toWorldY(py) {
+  return state.yMin + (1 - py / canvas.height) * (state.yMax - state.yMin);
+}
 
-      function createVRSlider() {
-        const group = new THREE.Group();
-        group.position.set(0, 0.5, 0.2);
+// ──────────────────────────────────────────────────────────────
+//  Draw
+// ──────────────────────────────────────────────────────────────
+function draw() {
+  const W = canvas.width;
+  const H = canvas.height;
+  const dpr = window.devicePixelRatio || 1;
 
-        const trackGeometry = new THREE.BoxGeometry(6.28, 0.06, 0.06);
-        const trackMaterial = new THREE.MeshStandardMaterial({ color: 0x1a3a5c, roughness: 0.8, metalness: 0.2 });
-        const track = new THREE.Mesh(trackGeometry, trackMaterial);
-        track.name = 'sliderTrack';
-        group.add(track);
+  ctx.clearRect(0, 0, W, H);
 
-        const thumbGeometry = new THREE.BoxGeometry(0.2, 0.15, 0.15);
-        const thumbMaterial = new THREE.MeshStandardMaterial({ color: 0x88c8ff, roughness: 0.3, metalness: 0.6, emissive: 0x44a0ff, emissiveIntensity: 0.3 });
-        const thumb = new THREE.Mesh(thumbGeometry, thumbMaterial);
-        thumb.name = 'sliderThumb';
-        thumb.position.x = 0;
-        group.add(thumb);
+  // BG
+  ctx.fillStyle = '#07090f';
+  ctx.fillRect(0, 0, W, H);
 
-        return group;
-      }
+  if (state.showGrid) drawGrid(W, H);
+  drawAxes(W, H);
+  if (state.compiledFn) drawCurve(W, H);
+  drawAxisLabels(W, H);
+}
 
-      function createAxes() {
-        const material = new THREE.MeshStandardMaterial({ color: 0x88c8ff, roughness: 0.3, metalness: 0.2 });
-        const length = 3.0;
-        const thickness = 0.03;
+function niceStep(range, maxTicks) {
+  const rough = range / maxTicks;
+  const exp = Math.floor(Math.log10(rough));
+  const frac = rough / Math.pow(10, exp);
+  let nice = frac < 1.5 ? 1 : frac < 3.5 ? 2 : frac < 7.5 ? 5 : 10;
+  return nice * Math.pow(10, exp);
+}
 
-        const xAxis = new THREE.Mesh(new THREE.CylinderGeometry(thickness, thickness, length, 12), material);
-        xAxis.rotation.z = -Math.PI / 2;
-        xAxis.position.x = length / 2;
-        axesGroup.add(xAxis);
+function drawGrid(W, H) {
+  const xRange = state.xMax - state.xMin;
+  const yRange = state.yMax - state.yMin;
+  const xStep = niceStep(xRange, 10);
+  const yStep = niceStep(yRange, 8);
 
-        const yAxis = new THREE.Mesh(new THREE.CylinderGeometry(thickness, thickness, length, 12), material);
-        yAxis.position.y = length / 2;
-        axesGroup.add(yAxis);
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
 
-        const zAxis = new THREE.Mesh(new THREE.CylinderGeometry(thickness, thickness, length, 12), material);
-        zAxis.rotation.x = Math.PI / 2;
-        zAxis.position.z = length / 2;
-        axesGroup.add(zAxis);
+  const xStart = Math.ceil(state.xMin / xStep) * xStep;
+  for (let x = xStart; x <= state.xMax + 1e-9; x += xStep) {
+    const px = toCanvasX(x);
+    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H); ctx.stroke();
+  }
+  const yStart = Math.ceil(state.yMin / yStep) * yStep;
+  for (let y = yStart; y <= state.yMax + 1e-9; y += yStep) {
+    const py = toCanvasY(y);
+    ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(W, py); ctx.stroke();
+  }
+}
 
-        const arrow = new THREE.ConeGeometry(0.08, 0.26, 16);
-        const xArrow = new THREE.Mesh(arrow, material);
-        xArrow.rotation.z = -Math.PI / 2;
-        xArrow.position.set(length, 0, 0);
-        axesGroup.add(xArrow);
+function drawAxes(W, H) {
+  const ox = toCanvasX(0);
+  const oy = toCanvasY(0);
 
-        const yArrow = new THREE.Mesh(arrow, material);
-        yArrow.position.set(0, length, 0);
-        axesGroup.add(yArrow);
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 1;
 
-        const zArrow = new THREE.Mesh(arrow, material);
-        zArrow.rotation.x = Math.PI / 2;
-        zArrow.position.set(0, 0, length);
-        axesGroup.add(zArrow);
+  if (ox >= 0 && ox <= W) {
+    ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, H); ctx.stroke();
+  }
+  if (oy >= 0 && oy <= H) {
+    ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(W, oy); ctx.stroke();
+  }
+}
 
-        axesGroup.add(createLabel('X', length + 0.2, 0, 0));
-        axesGroup.add(createLabel('Y', 0, length + 0.2, 0));
-        axesGroup.add(createLabel('Z', 0, 0, length + 0.2));
-      }
+function drawAxisLabels(W, H) {
+  const xRange = state.xMax - state.xMin;
+  const yRange = state.yMax - state.yMin;
+  const xStep = niceStep(xRange, 10);
+  const yStep = niceStep(yRange, 8);
 
-      function createLabel(text, x, y, z) {
-        const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 128;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'rgba(5, 9, 24, 0.0)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.font = 'bold 70px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#ccf6ff';
-        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+  ctx.fillStyle = 'rgba(90,95,115,0.9)';
+  ctx.font = `300 11px 'DM Mono', monospace`;
+  ctx.textAlign = 'center';
 
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.encoding = THREE.sRGBEncoding;
+  const oy = Math.min(Math.max(toCanvasY(0), 14), H - 6);
 
-        const label = new THREE.Mesh(
-          new THREE.PlaneGeometry(0.4, 0.2),
-          new THREE.MeshBasicMaterial({ map: texture, transparent: true })
-        );
-        label.position.set(x, y, z);
-        label.lookAt(camera.position);
-        return label;
-      }
+  const xStart = Math.ceil(state.xMin / xStep) * xStep;
+  for (let x = xStart; x <= state.xMax + 1e-9; x += xStep) {
+    if (Math.abs(x) < xStep * 0.01) continue;
+    const px = toCanvasX(x);
+    if (px < 20 || px > W - 20) continue;
+    ctx.fillText(fmt(x), px, oy + 14);
+  }
 
-      function createFxCurve(xOff) {
-        const points = [];
-        const start = -Math.PI * 4;
-        const end = Math.PI * 4;
-        const step = 0.08;
-        for (let x = start; x <= end; x += step) {
-          const adjustedX = x + xOff;
-          const y = adjustedX !== 0 ? 2 * adjustedX - 1 / adjustedX : 0; // Avoid division by zero
-          points.push(new THREE.Vector3(adjustedX * 0.28, y * 0.7, 0));
-        }
+  ctx.textAlign = 'right';
+  const ox = Math.min(Math.max(toCanvasX(0), 20), W - 6);
+  const yStart = Math.ceil(state.yMin / yStep) * yStep;
+  for (let y = yStart; y <= state.yMax + 1e-9; y += yStep) {
+    if (Math.abs(y) < yStep * 0.01) continue;
+    const py = toCanvasY(y);
+    if (py < 14 || py > H - 6) continue;
+    ctx.fillText(fmt(y), ox - 6, py + 4);
+  }
+}
 
-        const curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
-        const curveMaterial = new THREE.LineBasicMaterial({ color: 0xffd568, linewidth: 2 });
-        const curve = new THREE.Line(curveGeometry, curveMaterial);
-        curve.position.y = 0.02;
-        axesGroup.add(curve);
-        return curve;
-      }
+function fmt(n) {
+  if (Math.abs(n) >= 1000 || (Math.abs(n) < 0.01 && n !== 0)) {
+    return n.toExponential(1);
+  }
+  const d = Math.abs(n) < 10 ? 1 : 0;
+  return n.toFixed(d);
+}
 
-      function createController(index) {
-        const controller = renderer.xr.getController(index);
-        controller.addEventListener('selectstart', onSelectStart);
-        controller.addEventListener('selectend', onSelectEnd);
+function drawCurve(W, H) {
+  const fn = state.compiledFn;
+  const A = state.A, B = state.B;
+  const steps = W * 2;
+  const xRange = state.xMax - state.xMin;
 
-        const ray = new THREE.Line(
-          new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
-          new THREE.LineBasicMaterial({ color: 0x88c8ff })
-        );
-        ray.name = 'ray';
-        ray.scale.z = 6;
-        controller.add(ray);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#5df5c2';
+  ctx.shadowColor = 'rgba(93,245,194,0.35)';
+  ctx.shadowBlur = 8;
+  ctx.lineJoin = 'round';
 
-        const pointer = new THREE.Mesh(
-          new THREE.SphereGeometry(0.015, 16, 12),
-          new THREE.MeshBasicMaterial({ color: 0x88c8ff, opacity: 0.9, transparent: true })
-        );
-        pointer.position.set(0, 0, -1);
-        controller.add(pointer);
+  ctx.beginPath();
+  let penDown = false;
+  let prevY = null;
 
-        return controller;
-      }
+  for (let i = 0; i <= steps; i++) {
+    const x = state.xMin + (i / steps) * xRange;
+    let y;
+    try { y = fn(x, A, B); } catch { y = NaN; }
 
-      function onSelectStart(event) {
-        const controller = event.target;
-        const intersections = getControllerIntersections(controller);
-        if (intersections.length) {
-          const hitObject = intersections[0].object;
-          if (hitObject.name === 'sliderThumb') {
-            selectedMode = 'slider';
-            selectedController = controller;
-            sliderStartX = intersections[0].point.x;
-            sliderStartOffset = xOffset;
-          } else if (hitObject.name === 'sliderTrack') {
-            selectedMode = 'slider';
-            selectedController = controller;
-            sliderStartX = intersections[0].point.x;
-            sliderStartOffset = xOffset;
-          } else {
-            selectedMode = 'transform';
-            selectedController = controller;
-            controllerStartQuat.copy(controller.quaternion);
-            axesStartQuat.copy(axesGroup.quaternion);
-            controllerStartPos.setFromMatrixPosition(controller.matrixWorld);
-            axesStartPos.copy(axesGroup.position);
-          }
-        }
-      }
+    if (!isFinite(y) || isNaN(y)) {
+      penDown = false;
+      prevY = null;
+      continue;
+    }
 
-      function onSelectEnd() {
-        selectedController = null;
-        selectedMode = null;
-      }
+    // detect discontinuity
+    if (prevY !== null && Math.abs(y - prevY) > (state.yMax - state.yMin) * 2) {
+      penDown = false;
+    }
+    prevY = y;
 
-      function getControllerIntersections(controller) {
-        tempMatrix.identity().extractRotation(controller.matrixWorld);
-        raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-        raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
-        return raycaster.intersectObjects(sliderGroup.children, true).concat(raycaster.intersectObjects(axesGroup.children, true));
-      }
+    const px = toCanvasX(x);
+    const py = toCanvasY(y);
 
-      function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      }
+    if (!penDown) { ctx.moveTo(px, py); penDown = true; }
+    else { ctx.lineTo(px, py); }
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
 
-      function render() {
-        if (selectedController && selectedMode === 'transform') {
-          const currentQuat = selectedController.quaternion.clone();
-          const deltaQuat = currentQuat.multiply(controllerStartQuat.clone().invert());
-          axesGroup.quaternion.copy(axesStartQuat).premultiply(deltaQuat);
+// ──────────────────────────────────────────────────────────────
+//  Slider A / B
+// ──────────────────────────────────────────────────────────────
+function syncSlider(slider, valEl, minEl, maxEl, key) {
+  const mn = parseFloat(minEl.value) || -10;
+  const mx = parseFloat(maxEl.value) || 10;
+  slider.min = mn; slider.max = mx;
+  const v = parseFloat(slider.value);
+  state[key] = v;
+  valEl.textContent = v.toFixed(2);
+  const pct = ((v - mn) / (mx - mn) * 100).toFixed(1) + '%';
+  slider.style.setProperty('--pct', pct);
+}
 
-          const currentPos = new THREE.Vector3().setFromMatrixPosition(selectedController.matrixWorld);
-          const deltaPos = currentPos.clone().sub(controllerStartPos);
-          axesGroup.position.copy(axesStartPos).add(deltaPos);
-        } else if (selectedController && selectedMode === 'slider') {
-          tempMatrix.identity().extractRotation(selectedController.matrixWorld);
-          raycaster.ray.origin.setFromMatrixPosition(selectedController.matrixWorld);
-          raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
-          const sliderIntersections = raycaster.intersectObjects(sliderGroup.children, true);
-          if (sliderIntersections.length) {
-            const currentX = sliderIntersections[0].point.x;
-            const deltaX = currentX - sliderStartX;
-            const minX = -3.14;
-            const maxX = 3.14;
-            const trackLength = maxX - minX;
-            const normalizedDelta = deltaX / trackLength;
-            const offsetRange = 31.4 - (-31.4);
-            xOffset = sliderStartOffset + normalizedDelta * offsetRange;
-            xOffset = Math.max(-31.4, Math.min(31.4, xOffset));
-            xSlider.value = xOffset;
-            xValue.textContent = xOffset.toFixed(1);
-            updateFxCurve();
-            updateSliderThumb();
-          }
-        }
-        renderer.render(scene, camera);
-      }
-    </script>
-  </body>
+function updateSlider(key, slider, valEl, minEl, maxEl) {
+  return () => {
+    syncSlider(slider, valEl, minEl, maxEl, key);
+    draw();
+  };
+}
+
+sliderA.addEventListener('input', updateSlider('A', sliderA, valA, minAEl, maxAEl));
+sliderB.addEventListener('input', updateSlider('B', sliderB, valB, minBEl, maxBEl));
+
+function bindRange(minEl, maxEl, slider, valEl, key) {
+  const refresh = () => {
+    const mn = parseFloat(minEl.value);
+    const mx = parseFloat(maxEl.value);
+    if (isNaN(mn) || isNaN(mx) || mn >= mx) return;
+    slider.min = mn; slider.max = mx;
+    syncSlider(slider, valEl, minEl, maxEl, key);
+    draw();
+  };
+  minEl.addEventListener('change', refresh);
+  maxEl.addEventListener('change', refresh);
+}
+bindRange(minAEl, maxAEl, sliderA, valA, 'A');
+bindRange(minBEl, maxBEl, sliderB, valB, 'B');
+
+// ──────────────────────────────────────────────────────────────
+//  View controls
+// ──────────────────────────────────────────────────────────────
+[xMinEl, xMaxEl, yMinEl, yMaxEl].forEach(el => {
+  el.addEventListener('change', () => {
+    state.xMin = parseFloat(xMinEl.value) || -10;
+    state.xMax = parseFloat(xMaxEl.value) || 10;
+    state.yMin = parseFloat(yMinEl.value) || -10;
+    state.yMax = parseFloat(yMaxEl.value) || 10;
+    draw();
+  });
+});
+
+function resetView() {
+  state.xMin = -10; state.xMax = 10;
+  state.yMin = -10; state.yMax = 10;
+  syncViewInputs();
+  draw();
+}
+
+function autoFit() {
+  if (!state.compiledFn) return;
+  const A = state.A, B = state.B;
+  const steps = 400;
+  let ys = [];
+  for (let i = 0; i <= steps; i++) {
+    const x = state.xMin + (i / steps) * (state.xMax - state.xMin);
+    try {
+      const y = state.compiledFn(x, A, B);
+      if (isFinite(y)) ys.push(y);
+    } catch {}
+  }
+  if (!ys.length) return;
+  const mn = Math.min(...ys), mx = Math.max(...ys);
+  const pad = (mx - mn) * 0.1 || 1;
+  state.yMin = mn - pad;
+  state.yMax = mx + pad;
+  syncViewInputs();
+  draw();
+}
+
+function syncViewInputs() {
+  xMinEl.value = state.xMin.toFixed(2);
+  xMaxEl.value = state.xMax.toFixed(2);
+  yMinEl.value = state.yMin.toFixed(2);
+  yMaxEl.value = state.yMax.toFixed(2);
+}
+
+document.getElementById('btnReset').addEventListener('click', resetView);
+document.getElementById('btnFit').addEventListener('click', autoFit);
+document.getElementById('btnGrid').addEventListener('click', () => {
+  state.showGrid = !state.showGrid;
+  document.getElementById('btnGrid').textContent = state.showGrid ? 'griglia' : 'griglia off';
+  draw();
+});
+
+// ──────────────────────────────────────────────────────────────
+//  Presets
+// ──────────────────────────────────────────────────────────────
+const presetList = document.getElementById('presetList');
+PRESETS.forEach(p => {
+  const btn = document.createElement('button');
+  btn.className = 'preset-btn';
+  btn.innerHTML = `<span class="preset-fn">${p.fn}</span><span class="preset-desc">${p.label}</span>`;
+  btn.addEventListener('click', () => {
+    fxInput.value = p.fn;
+    updateFn();
+  });
+  presetList.appendChild(btn);
+});
+
+// ──────────────────────────────────────────────────────────────
+//  Function input live update
+// ──────────────────────────────────────────────────────────────
+let debounceTimer;
+fxInput.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(updateFn, 320);
+});
+fxInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { clearTimeout(debounceTimer); updateFn(); }
+});
+
+// ──────────────────────────────────────────────────────────────
+//  Mouse: pan + zoom + tooltip
+// ──────────────────────────────────────────────────────────────
+canvas.addEventListener('mousedown', (e) => {
+  state.pan.active = true;
+  state.pan.startX = e.clientX;
+  state.pan.startY = e.clientY;
+  state.pan.origXMin = state.xMin;
+  state.pan.origXMax = state.xMax;
+  state.pan.origYMin = state.yMin;
+  state.pan.origYMax = state.yMax;
+  canvas.style.cursor = 'grabbing';
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (state.pan.active) {
+    const rect = canvas.getBoundingClientRect();
+    const dx = (e.clientX - state.pan.startX) / rect.width * (state.xMax - state.xMin);
+    const dy = (e.clientY - state.pan.startY) / rect.height * (state.yMax - state.yMin);
+    state.xMin = state.pan.origXMin - dx;
+    state.xMax = state.pan.origXMax - dx;
+    state.yMin = state.pan.origYMin + dy;
+    state.yMax = state.pan.origYMax + dy;
+    syncViewInputs();
+    draw();
+  } else {
+    // tooltip
+    const rect = canvas.getBoundingClientRect();
+    const px = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const py = (e.clientY - rect.top)  * (canvas.height / rect.height);
+    const wx = toWorldX(px);
+    let wy = null;
+    if (state.compiledFn) {
+      try { const v = state.compiledFn(wx, state.A, state.B); if (isFinite(v)) wy = v; } catch {}
+    }
+    if (wy !== null) {
+      tooltip.style.opacity = '1';
+      tooltip.style.left = (e.clientX - canvas.getBoundingClientRect().left + 14) + 'px';
+      tooltip.style.top  = (e.clientY - canvas.getBoundingClientRect().top  - 10) + 'px';
+      tooltip.textContent = `x=${wx.toFixed(3)}  y=${wy.toFixed(3)}`;
+    } else {
+      tooltip.style.opacity = '0';
+    }
+  }
+});
+
+window.addEventListener('mouseup', () => {
+  state.pan.active = false;
+  canvas.style.cursor = 'crosshair';
+});
+
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const mx = toWorldX((e.clientX - rect.left) * (canvas.width / rect.width));
+  const my = toWorldY((e.clientY - rect.top)  * (canvas.height / rect.height));
+  const factor = e.deltaY > 0 ? 1.12 : 1 / 1.12;
+  state.xMin = mx + (state.xMin - mx) * factor;
+  state.xMax = mx + (state.xMax - mx) * factor;
+  state.yMin = my + (state.yMin - my) * factor;
+  state.yMax = my + (state.yMax - my) * factor;
+  syncViewInputs();
+  draw();
+}, { passive: false });
+
+// ──────────────────────────────────────────────────────────────
+//  Resize
+// ──────────────────────────────────────────────────────────────
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const wrap = document.getElementById('canvasWrap');
+  canvas.width  = wrap.clientWidth  * dpr;
+  canvas.height = wrap.clientHeight * dpr;
+  canvas.style.width  = wrap.clientWidth  + 'px';
+  canvas.style.height = wrap.clientHeight + 'px';
+  ctx.scale(dpr, dpr);
+  draw();
+}
+window.addEventListener('resize', resize);
+
+// ──────────────────────────────────────────────────────────────
+//  Init
+// ──────────────────────────────────────────────────────────────
+fxInput.value = state.fn;
+syncSlider(sliderA, valA, minAEl, maxAEl, 'A');
+syncSlider(sliderB, valB, minBEl, maxBEl, 'B');
+state.compiledFn = compileFn(state.fn);
+fxStatus.className = 'fx-status ok';
+fxStatus.textContent = '✓ funzione valida';
+
+resize();
+</script>
+</body>
 </html>
