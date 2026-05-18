@@ -23,11 +23,10 @@
       #panel {
         position: absolute;
         left: 1.1rem; top: 1.1rem;
-        width: 300px;
+        width: 320px;
         z-index: 10;
         border-radius: 16px;
         overflow: hidden;
-        /* layered border trick */
         background:
           linear-gradient(135deg, rgba(40,120,220,0.08) 0%, rgba(10,30,70,0.0) 60%),
           rgba(5, 11, 26, 0.9);
@@ -39,28 +38,17 @@
           0 0 60px rgba(60,160,255,0.06);
       }
 
-      /* top accent bar */
       #panel::before {
         content: '';
         display: block;
         height: 2px;
-        background: linear-gradient(90deg,
-          transparent 0%,
-          #3af 18%,
-          #7af 40%,
-          #f6a 65%,
-          #fd6 85%,
-          transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, #3af 18%, #7af 40%, #f6a 65%, #fd6 85%, transparent 100%);
         opacity: 0.7;
       }
 
       .panel-inner { padding: 0.9rem 1rem 1rem; }
 
-      /* ── header ── */
-      .ph {
-        display: flex; align-items: center; justify-content: space-between;
-        margin-bottom: 0.8rem;
-      }
+      .ph { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; }
       .ph-left { display: flex; flex-direction: column; gap: 0.05rem; }
       .ph-title {
         font-family: 'Space Grotesk', sans-serif;
@@ -68,16 +56,11 @@
         color: #7dd6ff; letter-spacing: 0.03em;
         text-transform: uppercase;
       }
-      .ph-sub {
-        font-size: 0.62rem;
-        color: rgba(140,190,240,0.45);
-        letter-spacing: 0.06em;
-      }
-      /* live indicator */
+      .ph-sub { font-size: 0.62rem; color: rgba(140,190,240,0.45); letter-spacing: 0.06em; }
+      
       .live-dot {
         width: 7px; height: 7px; border-radius: 50%;
-        background: #3f6;
-        box-shadow: 0 0 6px #3f6;
+        background: #3f6; box-shadow: 0 0 6px #3f6;
         animation: pulse 2s ease-in-out infinite;
       }
       @keyframes pulse {
@@ -85,145 +68,95 @@
         50%      { opacity: 0.5; transform: scale(0.75); }
       }
 
-      /* ── section label ── */
       .sec-label {
         font-size: 0.58rem; letter-spacing: 0.12em;
         text-transform: uppercase;
         color: rgba(100,160,220,0.45);
-        margin-bottom: 0.42rem;
-        margin-top: 0.72rem;
+        margin-bottom: 0.42rem; margin-top: 0.72rem;
       }
 
-      /* ── f(x) input ── */
-      .fx-row {
-        display: flex; align-items: center; gap: 0.38rem;
-      }
-      .fx-lbl {
-        font-family: 'Space Grotesk', sans-serif;
-        font-weight: 700; font-size: 0.78rem;
-        color: #fad85a; flex-shrink: 0;
-        letter-spacing: 0.01em;
-      }
+      .fx-row { display: flex; align-items: center; gap: 0.38rem; }
+      .fx-lbl { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.78rem; color: #fad85a; flex-shrink: 0; }
       #fxInput {
         flex: 1; min-width: 0;
         background: rgba(50,120,220,0.08);
         border: 1px solid rgba(80,160,255,0.22);
-        border-radius: 8px;
-        padding: 0.32rem 0.55rem;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.78rem;
+        border-radius: 8px; padding: 0.32rem 0.55rem;
+        font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
         color: #e8f4ff; outline: none;
-        transition: border-color .18s, box-shadow .18s;
         caret-color: #7dd6ff;
       }
-      #fxInput:focus {
-        border-color: rgba(100,200,255,0.5);
-        box-shadow: 0 0 0 3px rgba(80,180,255,0.1);
-      }
+      #fxInput:focus { border-color: rgba(100,200,255,0.5); box-shadow: 0 0 0 3px rgba(80,180,255,0.1); }
+      
       #applyBtn {
-        flex-shrink: 0;
-        background: linear-gradient(135deg, #3af 0%, #29e 100%);
-        color: #02060f;
-        border: none; border-radius: 8px;
-        padding: 0.32rem 0.6rem;
-        font-family: 'Space Grotesk', sans-serif;
-        font-weight: 700; font-size: 0.68rem;
-        cursor: pointer; letter-spacing: 0.06em;
-        text-transform: uppercase;
-        transition: opacity .15s, transform .1s, box-shadow .15s;
-        box-shadow: 0 2px 10px rgba(60,170,255,0.3);
+        flex-shrink: 0; background: linear-gradient(135deg, #3af 0%, #29e 100%); color: #02060f;
+        border: none; border-radius: 8px; padding: 0.32rem 0.6rem;
+        font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.68rem;
+        cursor: pointer; letter-spacing: 0.06em; text-transform: uppercase;
+        box-shadow: 0 2px 10px rgba(60,170,255,0.3); transition: transform .1s;
       }
       #applyBtn:hover { opacity: 0.88; box-shadow: 0 2px 14px rgba(60,170,255,0.5); }
       #applyBtn:active { transform: scale(0.94); }
 
-      #fxError {
-        font-size: 0.66rem; color: #ff7aac;
-        min-height: 0.85rem; margin-top: 0.28rem;
-        padding-left: 0.1rem;
-      }
+      #fxError { font-size: 0.66rem; color: #ff7aac; min-height: 0.85rem; margin-top: 0.28rem; }
 
-      /* ── sliders ── */
-      .sr {
-        display: grid;
-        grid-template-columns: 22px 1fr 46px;
-        gap: 0.4rem; align-items: center;
-        margin-bottom: 0.48rem;
-      }
-      .sr:last-of-type { margin-bottom: 0; }
-
-      .sn {
-        font-family: 'Space Grotesk', sans-serif;
-        font-weight: 700; font-size: 0.76rem;
-        text-align: center;
-      }
+      /* Sliders */
+      .sr { display: grid; grid-template-columns: 22px 1fr 46px; gap: 0.4rem; align-items: center; margin-bottom: 0.48rem; }
+      .sn { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.76rem; text-align: center; }
       .sn.a  { color: #5ae4ff; text-shadow: 0 0 8px rgba(90,228,255,0.6); }
       .sn.b  { color: #ff7aac; text-shadow: 0 0 8px rgba(255,122,172,0.6); }
       .sn.xo { color: #fad85a; text-shadow: 0 0 8px rgba(250,216,90,0.6); }
-
-      .sv {
-        font-size: 0.7rem; text-align: right;
-        color: rgba(180,220,255,0.5);
-        font-variant-numeric: tabular-nums;
-        letter-spacing: -0.02em;
-      }
+      .sv { font-size: 0.7rem; text-align: right; color: rgba(180,220,255,0.5); font-variant-numeric: tabular-nums; }
 
       input[type='range'] {
         -webkit-appearance: none; appearance: none;
         width: 100%; height: 3px; border-radius: 2px;
-        background: rgba(30,70,140,0.6);
-        outline: none; cursor: pointer;
+        background: rgba(30,70,140,0.6); outline: none; cursor: pointer;
       }
 
       #aSlider { background: linear-gradient(90deg, rgba(90,228,255,0.35) var(--pct,50%), rgba(30,70,140,0.5) var(--pct,50%)); }
       #bSlider { background: linear-gradient(90deg, rgba(255,122,172,0.35) var(--pct,50%), rgba(30,70,140,0.5) var(--pct,50%)); }
       #xSlider { background: linear-gradient(90deg, rgba(250,216,90,0.35) var(--pct,50%), rgba(30,70,140,0.5) var(--pct,50%)); }
 
-      #aSlider::-webkit-slider-thumb { -webkit-appearance:none; width:13px; height:13px; border-radius:50%; background:#5ae4ff; box-shadow:0 0 6px rgba(90,228,255,0.7), 0 0 14px rgba(90,228,255,0.3); }
-      #aSlider::-moz-range-thumb     { width:13px; height:13px; border-radius:50%; background:#5ae4ff; border:none; box-shadow:0 0 6px rgba(90,228,255,0.7); }
+      input[type='range']::-webkit-slider-thumb { -webkit-appearance:none; width:13px; height:13px; border-radius:50%; cursor:pointer; }
+      #aSlider::-webkit-slider-thumb { background:#5ae4ff; box-shadow:0 0 6px rgba(90,228,255,0.7); }
+      #bSlider::-webkit-slider-thumb { background:#ff7aac; box-shadow:0 0 6px rgba(255,122,172,0.7); }
+      #xSlider::-webkit-slider-thumb { background:#fad85a; box-shadow:0 0 6px rgba(250,216,90,0.7); }
 
-      #bSlider::-webkit-slider-thumb { -webkit-appearance:none; width:13px; height:13px; border-radius:50%; background:#ff7aac; box-shadow:0 0 6px rgba(255,122,172,0.7), 0 0 14px rgba(255,122,172,0.3); }
-      #bSlider::-moz-range-thumb     { width:13px; height:13px; border-radius:50%; background:#ff7aac; border:none; box-shadow:0 0 6px rgba(255,122,172,0.7); }
-
-      #xSlider::-webkit-slider-thumb { -webkit-appearance:none; width:13px; height:13px; border-radius:50%; background:#fad85a; box-shadow:0 0 6px rgba(250,216,90,0.7), 0 0 14px rgba(250,216,90,0.3); }
-      #xSlider::-moz-range-thumb     { width:13px; height:13px; border-radius:50%; background:#fad85a; border:none; box-shadow:0 0 6px rgba(250,216,90,0.7); }
-
-      /* ── divider ── */
-      .div {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(80,160,255,0.15), transparent);
-        margin: 0.65rem 0;
-      }
-
-      /* ── hint ── */
-      .hint {
-        font-size: 0.62rem;
-        color: rgba(140,180,230,0.32);
-        line-height: 1.65;
-        margin-top: 0.6rem;
-      }
+      .div { height: 1px; background: linear-gradient(90deg, transparent, rgba(80,160,255,0.15), transparent); margin: 0.65rem 0; }
+      .hint { font-size: 0.62rem; color: rgba(140,180,230,0.32); line-height: 1.65; margin-top: 0.6rem; }
       .hint b { color: rgba(120,210,255,0.55); font-weight: 500; }
 
-      /* ── examples ── */
-      .examples {
-        display: flex; flex-wrap: wrap; gap: 0.28rem;
-        margin-top: 0.5rem;
-      }
+      .examples { display: flex; flex-wrap: wrap; gap: 0.28rem; margin-top: 0.5rem; }
       .ex-chip {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.6rem;
-        padding: 0.18rem 0.45rem;
-        background: rgba(50,120,220,0.1);
-        border: 1px solid rgba(80,160,255,0.16);
-        border-radius: 4px;
-        color: rgba(160,210,255,0.55);
-        cursor: pointer;
-        transition: background .15s, color .15s, border-color .15s;
-        user-select: none;
+        font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; padding: 0.18rem 0.45rem;
+        background: rgba(50,120,220,0.1); border: 1px solid rgba(80,160,255,0.16); border-radius: 4px;
+        color: rgba(160,210,255,0.55); cursor: pointer; user-select: none;
       }
-      .ex-chip:hover {
-        background: rgba(60,140,255,0.18);
-        color: #9dd4ff;
-        border-color: rgba(100,180,255,0.3);
+      .ex-chip:hover { background: rgba(60,140,255,0.18); color: #9dd4ff; border-color: rgba(100,180,255,0.3); }
+
+      /* ── CONTROLLI CAMERAS 2D ── */
+      .cam-pad {
+        display: flex; align-items: center; justify-content: center; margin: 0.5rem auto 0;
+        width: 110px; height: 110px; position: relative;
+      }
+      .cam-btn {
+        position: absolute; background: rgba(50,120,220,0.15); border: 1px solid rgba(80,160,255,0.3);
+        color: #7dd6ff; font-size: 0.8rem; width: 28px; height: 28px; border-radius: 6px;
+        cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none;
+      }
+      .cam-btn:hover { background: rgba(80,160,255,0.3); color: #fff; }
+      .cam-btn:active { transform: scale(0.9); }
+      .cam-up    { top: 0; left: 41px; }
+      .cam-down  { bottom: 0; left: 41px; }
+      .cam-left  { left: 0; top: 41px; }
+      .cam-right { right: 0; top: 41px; }
+      
+      .cam-center {
+        position: absolute; top: 38px; left: 38px; width: 34px; height: 34px;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(250,216,90,0.1); border: 1px solid rgba(250,216,90,0.3);
+        border-radius: 50%; color: #fad85a;
       }
 
       canvas { display: block; }
@@ -242,7 +175,6 @@
           <div class="live-dot" title="live update"></div>
         </div>
 
-        <!-- f(x) formula -->
         <div class="sec-label">Formula</div>
         <div class="fx-row">
           <span class="fx-lbl">f(x)=</span>
@@ -251,7 +183,6 @@
         </div>
         <div id="fxError"></div>
 
-        <!-- examples -->
         <div class="examples">
           <span class="ex-chip" data-fx="A*sin(B*x)">A·sin(B·x)</span>
           <span class="ex-chip" data-fx="A*x^2 + B">A·x²+B</span>
@@ -262,7 +193,6 @@
 
         <div class="div"></div>
 
-        <!-- A, B sliders -->
         <div class="sec-label">Parametri dinamici</div>
         <div class="sr">
           <span class="sn a">A</span>
@@ -277,7 +207,6 @@
 
         <div class="div"></div>
 
-        <!-- X offset -->
         <div class="sec-label">Offset x</div>
         <div class="sr">
           <span class="sn xo">x</span>
@@ -285,9 +214,20 @@
           <span class="sv" id="xValue">0.0</span>
         </div>
 
+        <div class="div"></div>
+        
+        <div class="sec-label" style="text-align: center;">Muovi Visuale (Camera)</div>
+        <div class="cam-pad">
+          <button class="cam-btn cam-up" id="camUp">▲</button>
+          <button class="cam-btn cam-left" id="camLeft">◀</button>
+          <div class="cam-center">📷</div>
+          <button class="cam-btn cam-right" id="camRight">▶</button>
+          <button class="cam-btn cam-down" id="camDown">▼</button>
+        </div>
+
         <div class="hint">
-          <b>A</b> e <b>B</b> sono parametri live nella formula.<br>
-          VR: trigger → ruota/trasla · slider 3D → offset x
+          <b>A</b> e <b>B</b> cambiano la curva live.<br>
+          VR: Punta e clicca sul Menu fluttuante per regolare parametri e visuale.
         </div>
 
       </div>
@@ -318,7 +258,7 @@
       dirLight.position.set(5, 7, 5);
       scene.add(dirLight);
 
-      /* ── floor ── */
+      /* floor & grid */
       const floor = new THREE.Mesh(
         new THREE.PlaneGeometry(10, 10),
         new THREE.MeshStandardMaterial({ color: 0x060e1e, roughness: 0.97, metalness: 0.0 })
@@ -326,7 +266,6 @@
       floor.rotation.x = -Math.PI / 2;
       scene.add(floor);
 
-      /* ── subtle grid ── */
       const grid = new THREE.GridHelper(8, 20, 0x162a50, 0x0c1a34);
       grid.position.y = 0.001;
       scene.add(grid);
@@ -338,35 +277,120 @@
       let paramB  = 1;
       let fxExpr  = '2*x - 1/x';
 
-      /* ══ AXES GROUP (smaller — scale 0.7) ════════════════ */
       const axesGroup = new THREE.Group();
       axesGroup.position.set(0, 1.2, -0.4);
-      axesGroup.scale.setScalar(0.7);   /* ← overall size reduction */
+      axesGroup.scale.setScalar(0.7);
       scene.add(axesGroup);
 
       createAxes();
       fxCurve = createFxCurve();
 
-      /* ══ VR SLIDER ══════════════════════════════════════════ */
-      const sliderGroup = createVRSlider();
-      scene.add(sliderGroup);
+      /* ══ VR INTERACTIVE GUI PANEL (Canvas inside VR) ══════ */
+      let vrUiMesh;
+      const vrUiCanvas = document.createElement('canvas');
+      vrUiCanvas.width = 512;
+      vrUiCanvas.height = 512;
+      const vrUiCtx = vrUiCanvas.getContext('2d');
+      const vrUiTexture = new THREE.CanvasTexture(vrUiCanvas);
 
-      /* ══ CONTROLLERS (original logic) ══════════════════════ */
-      const controllers = [createController(0), createController(1)];
-      controllers.forEach(c => scene.add(c));
+      // Definizione delle aree di collisione (hitboxes) nel pannello VR
+      const hitBoxes = {
+        sliderA: { x: 80, y: 130, w: 350, h: 40, min: -10, max: 10, type: 'slider', key: 'A' },
+        sliderB: { x: 80, y: 210, w: 350, h: 40, min: -10, max: 10, type: 'slider', key: 'B' },
+        sliderX: { x: 80, y: 290, w: 350, h: 40, min: -31.4, max: 31.4, type: 'slider', key: 'X' },
+        btnUp:    { x: 236, y: 370, w: 40, h: 30, type: 'btn', dir: 'up' },
+        btnDown:  { x: 236, y: 450, w: 40, h: 30, type: 'btn', dir: 'down' },
+        btnLeft:  { x: 186, y: 410, w: 40, h: 30, type: 'btn', dir: 'left' },
+        btnRight: { x: 286, y: 410, w: 40, h: 30, type: 'btn', dir: 'right' }
+      };
 
-      const raycaster           = new THREE.Raycaster();
-      const tempMatrix          = new THREE.Matrix4();
-      let   selectedController  = null;
-      let   selectedMode        = null;
-      const controllerStartQuat = new THREE.Quaternion();
-      const axesStartQuat       = new THREE.Quaternion();
-      const controllerStartPos  = new THREE.Vector3();
-      const axesStartPos        = new THREE.Vector3();
-      let   sliderStartX        = 0;
-      let   sliderStartOffset   = 0;
+      function drawVrUi() {
+        // Background
+        vrUiCtx.fillStyle = 'rgba(5, 11, 26, 0.95)';
+        vrUiCtx.fillRect(0, 0, 512, 512);
+        
+        // Border
+        vrUiCtx.strokeStyle = 'rgba(80, 180, 255, 0.4)';
+        vrUiCtx.lineWidth = 4;
+        vrUiCtx.strokeRect(2, 2, 508, 508);
 
-      /* ══ DOM EVENTS ════════════════════════════════════════ */
+        // Header Title
+        vrUiCtx.fillStyle = '#7dd6ff';
+        vrUiCtx.font = 'bold 24px sans-serif';
+        vrUiCtx.fillText('PARAMETRI LIVE & CAMERA (VR)', 30, 50);
+
+        // Slider A
+        vrUiCtx.fillStyle = '#5ae4ff';
+        vrUiCtx.font = '20px monospace';
+        vrUiCtx.fillText(`A: ${paramA.toFixed(1)}`, 30, 115);
+        drawCanvasSlider(hitBoxes.sliderA, paramA);
+
+        // Slider B
+        vrUiCtx.fillStyle = '#ff7aac';
+        vrUiCtx.fillText(`B: ${paramB.toFixed(1)}`, 30, 195);
+        drawCanvasSlider(hitBoxes.sliderB, paramB);
+
+        // Slider X Offset
+        vrUiCtx.fillStyle = '#fad85a';
+        vrUiCtx.fillText(`Offset X: ${xOffset.toFixed(1)}`, 30, 275);
+        drawCanvasSlider(hitBoxes.sliderX, xOffset);
+
+        // Camera Pad Section
+        vrUiCtx.fillStyle = '#c8dff8';
+        vrUiCtx.font = '16px sans-serif';
+        vrUiCtx.fillText('SPOSTA CAMERA', 30, 390);
+
+        // Disegna freccette camera
+        drawCanvasBtn(hitBoxes.btnUp, '▲');
+        drawCanvasBtn(hitBoxes.btnDown, '▼');
+        drawCanvasBtn(hitBoxes.btnLeft, '◀');
+        drawCanvasBtn(hitBoxes.btnRight, '▶');
+        
+        // Centro fotocamera
+        vrUiCtx.fillStyle = '#fad85a';
+        vrUiCtx.font = '24px sans-serif';
+        vrUiCtx.fillText('📷', 242, 435);
+
+        vrUiTexture.needsUpdate = true;
+      }
+
+      function drawCanvasSlider(box, val) {
+        vrUiCtx.fillStyle = 'rgba(30,70,140,0.6)';
+        vrUiCtx.fillRect(box.x, box.y + 18, box.w, 6);
+        
+        const pct = (val - box.min) / (box.max - box.min);
+        vrUiCtx.fillStyle = '#7dd6ff';
+        vrUiCtx.fillRect(box.x, box.y + 18, box.w * pct, 6);
+
+        // Thumb
+        vrUiCtx.fillStyle = '#ffffff';
+        vrUiCtx.beginPath();
+        vrUiCtx.arc(box.x + (box.w * pct), box.y + 21, 10, 0, Math.PI * 2);
+        vrUiCtx.fill();
+      }
+
+      function drawCanvasBtn(box, text) {
+        vrUiCtx.fillStyle = 'rgba(80, 160, 255, 0.2)';
+        vrUiCtx.fillRect(box.x, box.y, box.w, box.h);
+        vrUiCtx.strokeStyle = 'rgba(80, 160, 255, 0.6)';
+        vrUiCtx.lineWidth = 2;
+        vrUiCtx.strokeRect(box.x, box.y, box.w, box.h);
+        
+        vrUiCtx.fillStyle = '#7dd6ff';
+        vrUiCtx.font = '20px sans-serif';
+        vrUiCtx.fillText(text, box.x + 10, box.y + 22);
+      }
+
+      // Creazione della mesh del pannello fluttuante nello spazio 3D
+      const vrUiGeo = new THREE.PlaneGeometry(1.2, 1.2);
+      const vrUiMat = new THREE.MeshBasicMaterial({ map: vrUiTexture, side: THREE.DoubleSide });
+      vrUiMesh = new THREE.Mesh(vrUiGeo, vrUiMat);
+      vrUiMesh.position.set(-1.1, 1.3, -0.6);
+      vrUiMesh.rotation.y = 0.4;
+      scene.add(vrUiMesh);
+      drawVrUi();
+
+      /* ══ DOM CONTROLS SYNC ═════════════════════════════════ */
       const xSlider = document.getElementById('xSlider');
       const xValue  = document.getElementById('xValue');
       const aSlider = document.getElementById('aSlider');
@@ -381,32 +405,32 @@
       }
       [aSlider, bSlider, xSlider].forEach(s => syncSliderBg(s));
 
-      xSlider.addEventListener('input', e => {
-        xOffset = parseFloat(e.target.value);
+      function updateAllViews() {
         xValue.textContent = xOffset.toFixed(1);
-        syncSliderBg(e.target);
-        updateFxCurve();
-        updateSliderThumb();
-      });
-
-      aSlider.addEventListener('input', e => {
-        paramA = parseFloat(e.target.value);
+        xSlider.value = xOffset;
         aValue.textContent = paramA.toFixed(1);
-        syncSliderBg(e.target);
-        updateFxCurve();
-      });
-
-      bSlider.addEventListener('input', e => {
-        paramB = parseFloat(e.target.value);
+        aSlider.value = paramA;
         bValue.textContent = paramB.toFixed(1);
-        syncSliderBg(e.target);
+        bSlider.value = paramB;
+        [aSlider, bSlider, xSlider].forEach(s => syncSliderBg(s));
         updateFxCurve();
-      });
+        drawVrUi();
+      }
+
+      xSlider.addEventListener('input', e => { xOffset = parseFloat(e.target.value); updateAllViews(); });
+      aSlider.addEventListener('input', e => { paramA = parseFloat(e.target.value); updateAllViews(); });
+      bSlider.addEventListener('input', e => { paramB = parseFloat(e.target.value); updateAllViews(); });
+
+      /* Movimenti camera da schermo 2D */
+      const CAM_SPEED = 0.1;
+      document.getElementById('camUp').addEventListener('click', () => { camera.position.y += CAM_SPEED; });
+      document.getElementById('camDown').addEventListener('click', () => { camera.position.y -= CAM_SPEED; });
+      document.getElementById('camLeft').addEventListener('click', () => { camera.position.x -= CAM_SPEED; });
+      document.getElementById('camRight').addEventListener('click', () => { camera.position.x += CAM_SPEED; });
 
       document.getElementById('applyBtn').addEventListener('click', applyFx);
       document.getElementById('fxInput').addEventListener('keydown', e => { if (e.key === 'Enter') applyFx(); });
 
-      /* example chips */
       document.querySelectorAll('.ex-chip').forEach(chip => {
         chip.addEventListener('click', () => {
           document.getElementById('fxInput').value = chip.dataset.fx;
@@ -417,7 +441,7 @@
       window.addEventListener('resize', onWindowResize);
       renderer.setAnimationLoop(render);
 
-      /* ══ f(x) COMPILE ══════════════════════════════════════ */
+      /* ══ f(x) PARSER & COMPILE ═════════════════════════════ */
       function buildEval(expr) {
         const e = expr
           .replace(/\^/g,      '**')
@@ -427,10 +451,9 @@
           .replace(/\bsqrt\b/g, 'Math.sqrt')
           .replace(/\babs\b/g,  'Math.abs')
           .replace(/\bexp\b/g,  'Math.exp')
-          .replace(/\blog\b/g,  'Math.log')
+          .replace(/\bprint\b/g,'Math.log')
           .replace(/\bpi\b/gi,  'Math.PI')
           .replace(/\be\b/g,    'Math.E');
-        // eslint-disable-next-line no-new-func
         return new Function('x', 'A', 'B', `"use strict"; return (${e});`);
       }
 
@@ -439,7 +462,7 @@
         const errEl = document.getElementById('fxError');
         if (!raw) return;
         try {
-          buildEval(raw)(1, paramA, paramB); /* test call */
+          buildEval(raw)(1, paramA, paramB);
           errEl.textContent = '';
           fxExpr = raw;
           updateFxCurve();
@@ -448,40 +471,29 @@
         }
       }
 
-      /* ══ CURVE ══════════════════════════════════════════════ */
       function updateFxCurve() {
         if (fxCurve) { axesGroup.remove(fxCurve); fxCurve = null; }
         fxCurve = createFxCurve();
-      }
-
-      function updateSliderThumb() {
-        const thumb = sliderGroup.getObjectByName('sliderThumb');
-        if (!thumb) return;
-        const norm = (xOffset - (-31.4)) / 62.8;
-        thumb.position.x = -3.14 + norm * 6.28;
       }
 
       function createFxCurve() {
         let fn;
         try { fn = buildEval(fxExpr); } catch (_) { return null; }
 
-        const points   = [];
-        const segments = [];          /* break curve at discontinuities */
-        let   seg      = [];
+        const segments = [];
+        let seg = [];
 
         const start = -Math.PI * 4;
         const end   =  Math.PI * 4;
         const step  = 0.05;
         const SCALE_X = 0.3;
         const SCALE_Y = 0.55;
-        const CLAMP   = 5.0;          /* world-units, after scaling */
+        const CLAMP   = 5.0;
 
         for (let t = start; t <= end + step * 0.5; t += step) {
           const x = t + xOffset;
           let y;
-          try {
-            y = fn(x, paramA, paramB);
-          } catch (_) { y = NaN; }
+          try { y = fn(x, paramA, paramB); } catch (_) { y = NaN; }
 
           if (!isFinite(y) || Math.abs(y * SCALE_Y) > CLAMP) {
             if (seg.length > 1) segments.push(seg);
@@ -492,7 +504,6 @@
         }
         if (seg.length > 1) segments.push(seg);
 
-        /* each continuous segment = one Line */
         const group = new THREE.Group();
         const mat   = new THREE.LineBasicMaterial({ color: 0xffdd55, linewidth: 2 });
         segments.forEach(pts => {
@@ -504,17 +515,15 @@
         return group;
       }
 
-      /* ══ AXES ═══════════════════════════════════════════════ */
+      /* ══ AXES GENERATOR ════════════════════════════════════ */
       function createAxes() {
         const length    = 3.0;
         const thickness = 0.025;
 
-        /* axis materials – coloured per axis */
         const mX = new THREE.MeshStandardMaterial({ color: 0x5ae4ff, roughness:0.3, metalness:0.3, emissive:0x1a5070, emissiveIntensity:0.4 });
         const mY = new THREE.MeshStandardMaterial({ color: 0x7affa0, roughness:0.3, metalness:0.3, emissive:0x105030, emissiveIntensity:0.4 });
         const mZ = new THREE.MeshStandardMaterial({ color: 0xff7aac, roughness:0.3, metalness:0.3, emissive:0x501030, emissiveIntensity:0.4 });
 
-        /* cylinders */
         const xCyl = new THREE.Mesh(new THREE.CylinderGeometry(thickness, thickness, length, 12), mX);
         xCyl.rotation.z = -Math.PI / 2; xCyl.position.x = length / 2;
         axesGroup.add(xCyl);
@@ -527,25 +536,19 @@
         zCyl.rotation.x = Math.PI / 2; zCyl.position.z = length / 2;
         axesGroup.add(zCyl);
 
-        /* cones */
         const cone = new THREE.ConeGeometry(0.07, 0.22, 16);
         const xArr = new THREE.Mesh(cone, mX); xArr.rotation.z = -Math.PI/2; xArr.position.set(length, 0, 0);
         const yArr = new THREE.Mesh(cone, mY); yArr.position.set(0, length, 0);
         const zArr = new THREE.Mesh(cone, mZ); zArr.rotation.x =  Math.PI/2; zArr.position.set(0, 0, length);
         axesGroup.add(xArr, yArr, zArr);
 
-        /* tick marks on X axis */
         for (let i = -4; i <= 4; i++) {
           if (i === 0) continue;
-          const tick = new THREE.Mesh(
-            new THREE.BoxGeometry(0.015, 0.1, 0.015),
-            new THREE.MeshStandardMaterial({ color: 0x3a7088, roughness: 0.6 })
-          );
-          tick.position.set(i * 0.3 * 3.14 / 4, 0, 0); /* map ticks to π fractions */
+          const tick = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.1, 0.015), new THREE.MeshStandardMaterial({ color: 0x3a7088, roughness: 0.6 }));
+          tick.position.set(i * 0.3 * 3.14 / 4, 0, 0);
           axesGroup.add(tick);
         }
 
-        /* labels */
         axesGroup.add(createLabel('X', length + 0.2,  0,           0,          '#7ae4ff'));
         axesGroup.add(createLabel('Y', 0,             length + 0.2, 0,          '#7affaa'));
         axesGroup.add(createLabel('Z', 0,             0,            length+0.2, '#ff9abc'));
@@ -555,48 +558,26 @@
         const cv  = document.createElement('canvas');
         cv.width  = 128; cv.height = 64;
         const ctx = cv.getContext('2d');
-        ctx.clearRect(0, 0, 128, 64);
         ctx.font = 'bold 48px system-ui';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillStyle = color || '#c8f4ff';
         ctx.fillText(text, 64, 34);
         const tex = new THREE.CanvasTexture(cv);
-        tex.encoding = THREE.sRGBEncoding;
-        const mesh = new THREE.Mesh(
-          new THREE.PlaneGeometry(0.28, 0.14),
-          new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })
-        );
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.14), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
         mesh.position.set(x, y, z);
         mesh.lookAt(camera.position);
         return mesh;
       }
 
-      /* ══ VR SLIDER (original logic intact) ════════════════ */
-      function createVRSlider() {
-        const group = new THREE.Group();
-        group.position.set(0, 0.5, 0.2);
+      /* ══ VR INTERACTION CONTROLLERS ═════════════════════════ */
+      const controllers = [createController(0), createController(1)];
+      controllers.forEach(c => scene.add(c));
 
-        const track = new THREE.Mesh(
-          new THREE.BoxGeometry(6.28, 0.06, 0.06),
-          new THREE.MeshStandardMaterial({ color: 0x163050, roughness: 0.8, metalness: 0.2 })
-        );
-        track.name = 'sliderTrack';
-        group.add(track);
+      const raycaster  = new THREE.Raycaster();
+      const tempMatrix = new THREE.Matrix4();
+      let selectedController = null;
+      let activeBox = null;
 
-        const thumb = new THREE.Mesh(
-          new THREE.BoxGeometry(0.2, 0.15, 0.15),
-          new THREE.MeshStandardMaterial({
-            color: 0xfad85a, roughness: 0.3, metalness: 0.6,
-            emissive: 0xfad85a, emissiveIntensity: 0.35
-          })
-        );
-        thumb.name = 'sliderThumb';
-        group.add(thumb);
-
-        return group;
-      }
-
-      /* ══ CONTROLLERS (original) ════════════════════════════ */
       function createController(index) {
         const controller = renderer.xr.getController(index);
         controller.addEventListener('selectstart', onSelectStart);
@@ -608,45 +589,55 @@
         );
         ray.name = 'ray'; ray.scale.z = 6;
         controller.add(ray);
-
-        const pointer = new THREE.Mesh(
-          new THREE.SphereGeometry(0.015, 16, 12),
-          new THREE.MeshBasicMaterial({ color: 0x5ae4ff, opacity: 0.9, transparent: true })
-        );
-        pointer.position.set(0, 0, -1);
-        controller.add(pointer);
-
         return controller;
       }
 
       function onSelectStart(event) {
-        const controller   = event.target;
-        const intersections = getControllerIntersections(controller);
-        if (!intersections.length) return;
-        const hit = intersections[0].object;
-        if (hit.name === 'sliderThumb' || hit.name === 'sliderTrack') {
-          selectedMode       = 'slider';
-          selectedController = controller;
-          sliderStartX       = intersections[0].point.x;
-          sliderStartOffset  = xOffset;
-        } else {
-          selectedMode       = 'transform';
-          selectedController = controller;
-          controllerStartQuat.copy(controller.quaternion);
-          axesStartQuat.copy(axesGroup.quaternion);
-          controllerStartPos.setFromMatrixPosition(controller.matrixWorld);
-          axesStartPos.copy(axesGroup.position);
-        }
-      }
-
-      function onSelectEnd() { selectedController = null; selectedMode = null; }
-
-      function getControllerIntersections(controller) {
+        const controller = event.target;
         tempMatrix.identity().extractRotation(controller.matrixWorld);
         raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
         raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
-        return raycaster.intersectObjects(sliderGroup.children, true)
-                        .concat(raycaster.intersectObjects(axesGroup.children, true));
+
+        const intersects = raycaster.intersectObject(vrUiMesh);
+        if (intersects.length > 0) {
+          const uv = intersects[0].uv;
+          // Converte le coordinate UV (0-1) nei pixel del Canvas VR (512x512)
+          const cx = uv.x * 512;
+          const cy = (1 - uv.y) * 512;
+
+          for (const key in hitBoxes) {
+            const box = hitBoxes[key];
+            if (cx >= box.x && cx <= box.x + box.w && cy >= box.y && cy <= box.y + box.h) {
+              selectedController = controller;
+              activeBox = box;
+              handleVrInteraction(cx);
+              break;
+            }
+          }
+        }
+      }
+
+      function onSelectEnd() { selectedController = null; activeBox = null; }
+
+      function handleVrInteraction(canvasX) {
+        if (!activeBox) return;
+
+        if (activeBox.type === 'slider') {
+          const pct = Math.max(0, Math.min(1, (canvasX - activeBox.x) / activeBox.w));
+          const val = activeBox.min + pct * (activeBox.max - activeBox.min);
+          
+          if (activeBox.key === 'A') paramA = val;
+          if (activeBox.key === 'B') paramB = val;
+          if (activeBox.key === 'X') xOffset = val;
+          updateAllViews();
+        } 
+        else if (activeBox.type === 'btn') {
+          if (activeBox.dir === 'up') camera.position.y += CAM_SPEED;
+          if (activeBox.dir === 'down') camera.position.y -= CAM_SPEED;
+          if (activeBox.dir === 'left') camera.position.x -= CAM_SPEED;
+          if (activeBox.dir === 'right') camera.position.x += CAM_SPEED;
+          drawVrUi();
+        }
       }
 
       function onWindowResize() {
@@ -655,34 +646,20 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
       }
 
-      /* ══ RENDER LOOP (original) ════════════════════════════ */
+      /* ══ MAIN LOOP ═════════════════════════════════════════ */
       function render() {
-        if (selectedController && selectedMode === 'transform') {
-          const currentQuat = selectedController.quaternion.clone();
-          const deltaQuat   = currentQuat.multiply(controllerStartQuat.clone().invert());
-          axesGroup.quaternion.copy(axesStartQuat).premultiply(deltaQuat);
-          const currentPos  = new THREE.Vector3().setFromMatrixPosition(selectedController.matrixWorld);
-          const deltaPos    = currentPos.clone().sub(controllerStartPos);
-          axesGroup.position.copy(axesStartPos).add(deltaPos);
-
-        } else if (selectedController && selectedMode === 'slider') {
+        // Gestione drag continuo degli slider dentro la VR
+        if (selectedController && activeBox && activeBox.type === 'slider') {
           tempMatrix.identity().extractRotation(selectedController.matrixWorld);
           raycaster.ray.origin.setFromMatrixPosition(selectedController.matrixWorld);
           raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
-          const hits = raycaster.intersectObjects(sliderGroup.children, true);
-          if (hits.length) {
-            const deltaX         = hits[0].point.x - sliderStartX;
-            const normalizedDelta = deltaX / 6.28;           /* track length */
-            xOffset = sliderStartOffset + normalizedDelta * 62.8;
-            xOffset = Math.max(-31.4, Math.min(31.4, xOffset));
-            xSlider.value         = xOffset;
-            xValue.textContent    = xOffset.toFixed(1);
-            syncSliderBg(xSlider);
-            updateFxCurve();
-            updateSliderThumb();
+
+          const intersects = raycaster.intersectObject(vrUiMesh);
+          if (intersects.length > 0) {
+            const cx = intersects[0].uv.x * 512;
+            handleVrInteraction(cx);
           }
         }
-
         renderer.render(scene, camera);
       }
     </script>
