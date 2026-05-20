@@ -2,7 +2,7 @@
   "name": "Metaverso a Scuola",
   "short_name": "Metaverso a Scuola",
   "description": "Una piattaforma per esperienze VR educative STEAM+ per la scuola superiore",
-  "start_url": "/",
+  "start_url": "/studious-guide/index.html",
   "display": "fullscreen",
   "orientation": "landscape",
   "background_color": "#ffffff",
