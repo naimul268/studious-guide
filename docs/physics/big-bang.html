@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>la creazion</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
+
+    .menu-title {
+      font-size: 4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    const app = document.getElementById('app');
+    const title = document.createElement('div');
+    title.className = 'menu-title';
+    title.textContent = 'la creazion';
+    app.appendChild(title);
+  </script>
+</body>
+</html>
