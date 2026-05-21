@@ -6,7 +6,7 @@
     "jquery": "4.0.0"
   },
   "scripts": {
-    "vendor": ". vendor.sh",
+    "vendor": "bash vendor.sh",
     "build": "npm run vendor"
   },
   "dependencies": {
