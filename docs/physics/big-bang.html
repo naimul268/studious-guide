@@ -2,36 +2,477 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>la creazion</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MetalVisor – Dal Big Bang alla Terra</title>
   <style>
+    :root {
+      color-scheme: dark;
+      color: #eef2ff;
+      background: #01010f;
+      --bg: #01010f;
+      --panel: rgba(10, 14, 30, 0.92);
+      --accent: #58c7ff;
+      --accent-soft: rgba(88, 199, 255, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      background: #000;
-      color: #fff;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #09102b 0%, #03050d 35%, #000 100%);
+      color: #eef2ff;
+      overflow-x: hidden;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      display: block;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(88, 199, 255, 0.14), transparent 18%), radial-gradient(circle at 80% 15%, rgba(255, 77, 255, 0.12), transparent 12%), radial-gradient(circle at 50% 75%, rgba(74, 252, 214, 0.14), transparent 20%);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      position: relative;
+      margin: 0;
+      font-size: clamp(3rem, 6vw, 5.5rem);
+      line-height: 1.02;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      z-index: 1;
+    }
+
+    .hero p {
+      position: relative;
+      max-width: 760px;
+      margin: 1.5rem auto 2rem;
+      color: #cdd6ff;
+      font-size: 1.05rem;
+      line-height: 1.85;
+      z-index: 1;
+    }
+
+    .btn {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 1rem 1.9rem;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #5c8bff, #38e5ff);
+      color: #060b18;
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 20px 50px rgba(40, 97, 255, 0.22);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 26px 60px rgba(40, 97, 255, 0.28);
+    }
+
+    .hero-note {
+      margin-top: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.65rem;
+      z-index: 1;
+      color: #8fa8d5;
+      font-size: 0.95rem;
+    }
+
+    .hero-note span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .visual {
+      margin-top: 2.5rem;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      max-width: 980px;
+      width: 100%;
+      z-index: 1;
+    }
+
+    .card {
+      background: rgba(8, 12, 26, 0.95);
+      border: 1px solid rgba(148, 200, 255, 0.08);
+      border-radius: 24px;
+      padding: 1.5rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 25px 75px rgba(0, 0, 0, 0.25);
+    }
+
+    .card h2 {
+      margin: 0 0 0.8rem;
+      font-size: 1.3rem;
+      letter-spacing: 0.08em;
+    }
+
+    .card p {
+      margin: 0;
+      color: #c9d4ff;
+      line-height: 1.75;
+      font-size: 0.98rem;
+    }
+
+    #journey {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(40px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+
+    #journey.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .sections {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 6rem;
+    }
+
+    .section {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 2rem;
+      margin-bottom: 4rem;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .section.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .section:nth-child(even) {
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+
+    .visual-block {
+      position: relative;
+      min-height: 260px;
+      border-radius: 28px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #06132f 0%, #040813 100%);
+      border: 1px solid rgba(117, 142, 255, 0.1);
+    }
+
+    .visual-block::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 20%, rgba(92, 139, 255, 0.18), transparent 18%), radial-gradient(circle at 70% 40%, rgba(74, 252, 214, 0.16), transparent 14%), radial-gradient(circle at 50% 70%, rgba(255, 77, 255, 0.14), transparent 16%);
+      pointer-events: none;
+    }
+
+    .content {
+      padding: 0.75rem 0;
+    }
+
+    .section h3 {
+      margin: 0.15rem 0 0.85rem;
+      font-size: clamp(1.75rem, 2vw, 2.25rem);
+      line-height: 1.05;
+    }
+
+    .section p {
+      margin: 0;
+      color: #dde6ff;
+      line-height: 1.8;
+      font-size: 1rem;
+    }
+
+    .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      color: #84abff;
+      letter-spacing: 0.14em;
+      margin-bottom: 1rem;
+    }
+
+    .label::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #5c8bff, #38e5ff);
+    }
+
+    .orbit {
+      position: absolute;
+      inset: 0;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-family: Arial, sans-serif;
     }
 
-    .menu-title {
-      font-size: 4rem;
-      text-transform: uppercase;
-      letter-spacing: 0.2rem;
+    .orbit::after {
+      content: "";
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+      border-radius: 50%;
+      animation: spin 18s linear infinite;
+    }
+
+    .planetesimo {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffe09c, #ff5d87);
+      box-shadow: 0 0 16px rgba(255, 93, 135, 0.3);
+    }
+
+    .orbit span:nth-child(1) { top: 16%; left: 50%; transform: translateX(-50%); }
+    .orbit span:nth-child(2) { top: 50%; right: 16%; transform: translateY(-50%); }
+    .orbit span:nth-child(3) { bottom: 16%; left: 42%; transform: translateX(-50%); }
+    .orbit span:nth-child(4) { bottom: 28%; right: 22%; transform: translateX(-50%); }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    footer {
+      padding: 1.5rem 1.5rem 3rem;
       text-align: center;
+      color: #6c7fa6;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 960px) {
+      .visual { grid-template-columns: 1fr; }
+      .section { grid-template-columns: 1fr; }
+      .section:nth-child(even) { grid-template-columns: 1fr; }
+      .hero h1 { font-size: clamp(2.7rem, 10vw, 4.5rem); }
+      .visual-block { min-height: 220px; }
     }
   </style>
 </head>
 <body>
-  <div id="app"></div>
+  <canvas id="starfield"></canvas>
+  <div class="page">
+    <section class="hero" aria-label="Intro MetalVisor">
+      <h1>MetalVisor – Dal Big Bang alla Terra</h1>
+      <p>Salta nel visore digitale e segui il viaggio cosmico attraverso le prime fiamme dell’universo, la nascita delle galassie, la formazione del Sistema Solare e la creazione della Terra.</p>
+      <button class="btn" id="startBtn">Inizia il viaggio</button>
+      <div class="hero-note">
+        <span>Animazioni interattive</span>
+        <span>Effetti particellari</span>
+        <span>Viaggio temporale</span>
+      </div>
+      <div class="visual" aria-hidden="true">
+        <div class="card"><h2>Big Bang</h2><p>I primi istanti di luce e materia che danno inizio al cosmo.</p></div>
+        <div class="card"><h2>Galassie</h2><p>La collisione di gas e stelle che genera strutture galattiche.</p></div>
+        <div class="card"><h2>Sistema Solare</h2><p>Il disco protoplanetario si condensa attorno al giovane Sole.</p></div>
+        <div class="card"><h2>Terra</h2><p>Un pianeta in evoluzione: oceani, atmosfera e i primi elementi della vita.</p></div>
+      </div>
+    </section>
+
+    <section id="journey" class="sections" aria-label="Sezioni del viaggio cosmico">
+      <article class="section" data-index="0">
+        <div class="visual-block">
+          <div class="orbit"><span class="planetesimo"></span><span class="planetesimo"></span><span class="planetesimo"></span><span class="planetesimo"></span></div>
+        </div>
+        <div class="content">
+          <span class="label">Fase 1</span>
+          <h3>Il Big Bang</h3>
+          <p>Una sfera di energia esplode in un lampo di luce: è l’inizio del tempo. In pochi attimi nascono particelle, fotoni ed espansione cosmica.</p>
+        </div>
+      </article>
+      <article class="section" data-index="1">
+        <div class="content">
+          <span class="label">Fase 2</span>
+          <h3>Evoluzione delle galassie</h3>
+          <p>Gas e polvere si aggregano in filamenti, grandi nubi collassano e formano le prime galassie a spirale e quelle ellittiche.</p>
+        </div>
+        <div class="visual-block">
+          <div class="orbit"><span class="planetesimo"></span><span class="planetesimo"></span><span class="planetesimo"></span><span class="planetesimo"></span></div>
+        </div>
+      </article>
+      <article class="section" data-index="2">
+        <div class="visual-block">
+          <div class="orbit"><span class="planetesimo"></span><span class="planetesimo"></span><span class="planetesimo"></span><span class="planetesimo"></span></div>
+        </div>
+        <div class="content">
+          <span class="label">Fase 3</span>
+          <h3>Formazione del Sistema Solare</h3>
+          <p>Il nostro Sole nasce al centro di un disco rotante. Particelle solide si aggregano formando pianeti, lune e corpi minori.</p>
+        </div>
+      </article>
+      <article class="section" data-index="3">
+        <div class="content">
+          <span class="label">Fase 4</span>
+          <h3>La nascita della Terra</h3>
+          <p>La Terra si raffredda, gli oceani si formano e il pianeta diventa una culla per la vita. È l’ultimo passo del viaggio temporale cosmico.</p>
+        </div>
+        <div class="visual-block">
+          <div class="orbit"><span class="planetesimo"></span><span class="planetesimo"></span><span class="planetesimo"></span><span class="planetesimo"></span></div>
+        </div>
+      </article>
+    </section>
+
+    <footer>MetalVisor by studious-guide · Esperienza di esplorazione cosmica interattiva</footer>
+  </div>
 
   <script>
-    const app = document.getElementById('app');
-    const title = document.createElement('div');
-    title.className = 'menu-title';
-    title.textContent = 'la creazion';
-    app.appendChild(title);
+    const canvas = document.getElementById('starfield');
+    const ctx = canvas.getContext('2d');
+    const stars = [];
+    const particles = [];
+    const sections = document.querySelectorAll('.section');
+    const startBtn = document.getElementById('startBtn');
+    const journey = document.getElementById('journey');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function rand(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function createStar() {
+      stars.push({
+        x: rand(0, canvas.width),
+        y: rand(0, canvas.height),
+        size: rand(0.4, 1.7),
+        speed: rand(0.04, 0.35),
+        alpha: rand(0.15, 0.9),
+        phase: rand(0, Math.PI * 2)
+      });
+    }
+
+    function createParticle() {
+      particles.push({
+        x: rand(0, canvas.width),
+        y: rand(0, canvas.height),
+        radius: rand(0.8, 2.4),
+        vx: rand(-0.05, 0.05),
+        vy: rand(-0.05, 0.05),
+        alpha: rand(0.08, 0.22)
+      });
+    }
+
+    function init() {
+      resizeCanvas();
+      stars.length = 0;
+      particles.length = 0;
+      for (let i = 0; i < 150; i++) createStar();
+      for (let i = 0; i < 55; i++) createParticle();
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#020314';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach((star) => {
+        star.y -= star.speed;
+        star.alpha = 0.3 + Math.sin(star.phase + performance.now() / 1600) * 0.3;
+        if (star.y < 0) star.y = canvas.height;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${star.alpha})`;
+        ctx.fill();
+      });
+
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(74,252,214,${p.alpha})`;
+        ctx.fill();
+      });
+
+      requestAnimationFrame(render);
+    }
+
+    function setupObserver() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add('active');
+        });
+      }, { threshold: 0.24 });
+      sections.forEach((section) => observer.observe(section));
+    }
+
+    function startJourney() {
+      journey.classList.add('active');
+      startBtn.disabled = true;
+      startBtn.textContent = 'Caricamento in corso…';
+      setTimeout(() => {
+        journey.scrollIntoView({ behavior: 'smooth' });
+        startBtn.textContent = 'Viaggio iniziato';
+        startBtn.style.opacity = '0';
+      }, 800);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    startBtn.addEventListener('click', startJourney);
+    window.addEventListener('DOMContentLoaded', () => {
+      init();
+      render();
+      setupObserver();
+    });
   </script>
 </body>
 </html>
