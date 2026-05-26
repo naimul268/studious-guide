@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three.js Postprocessing Demo</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+      font-family: Inter, system-ui, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .intro {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      pointer-events: auto;
+      z-index: 2;
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.08), transparent 44%);
+      transition: opacity 0.7s ease, visibility 0.7s ease;
+    }
+
+    .intro.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: none;
+      background: radial-gradient(circle at center, #fff, rgba(255, 255, 255, 0.85) 48%, rgba(255, 255, 255, 0.18) 100%);
+      box-shadow: 0 0 18px rgba(255, 255, 255, 0.75), 0 0 40px rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    #dot:hover,
+    #dot:focus {
+      transform: scale(1.15);
+      box-shadow: 0 0 24px rgba(255, 255, 255, 0.85), 0 0 60px rgba(255, 255, 255, 0.25);
+      outline: none;
+    }
+
+    .hint {
+      max-width: 320px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="intro" id="intro">
+    <button id="dot" aria-label="Start Three.js simulation"></button>
+    <div class="hint">Click the white dot to launch the Three.js postprocessing simulation.</div>
+  </div>
+
+  <canvas id="three-canvas"></canvas>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
